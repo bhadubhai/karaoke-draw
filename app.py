@@ -2,41 +2,48 @@ from flask import Flask, render_template, request, redirect
 import sqlite3
 import random
 import requests
-
+import os
 
 app = Flask(__name__)
 
-BOT_TOKEN = "..."
+# 🔐 ENV VARIABLES (from Render)
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+CHAT_ID = os.getenv("CHAT_ID")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
 
+# 🎤 Singer setup
 SINGERS = {
     "chetanbhai pandya": 6,
-    "chandreshbhai fichadiya": 1,
+    "chandreshbhai fichadiya": 6,
     "anilbhai mavadiya": 3,
     "jiteshbhai jivrajani": 3,
-    "kamleshbhai dave": 3,
-    "pareshbhai khakhkhar": 3,
-    "narendrabhai khakhkhar": 2,
-    "jaysukhbhai parekh": 2,
-    "rockstar": 2,
+    "kamleshbhai dave": 2,
+    "pareshbhai khakhkhar": 2,
+    "narendrabhai khakhkhar": 1,
+    "jaysukhbhai parekh": 1,
+    "rockstar": 3,
     "jagdishbhai kariya": 2,
-    "ashokbhai dhamecha": 2,
-    "naynaben vyas ": 2,
+    "ashokbhai dhamecha": 1,
 }
 
 TOTAL_SLOTS = 31
 
-CHAT_ID = "..."  # will be auto filled
 
-
-# 📁 DB
+# 📁 INIT DB
 def init_db():
     conn = sqlite3.connect("data.db")
     c = conn.cursor()
-    c.execute("CREATE TABLE IF NOT EXISTS draws (singer TEXT, slot INTEGER)")
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS draws (
+            singer TEXT,
+            slot INTEGER
+        )
+    """)
     conn.commit()
     conn.close()
 
 
+# 📊 GET DATA
 def get_data():
     conn = sqlite3.connect("data.db")
     c = conn.cursor()
@@ -46,6 +53,7 @@ def get_data():
     return [{"name": r[0], "slot": r[1]} for r in rows]
 
 
+# 💾 SAVE DATA
 def save_data(name, slots):
     conn = sqlite3.connect("data.db")
     c = conn.cursor()
@@ -55,6 +63,7 @@ def save_data(name, slots):
     conn.close()
 
 
+# 🔁 RESET DATA
 def reset_data():
     conn = sqlite3.connect("data.db")
     c = conn.cursor()
@@ -63,21 +72,28 @@ def reset_data():
     conn.close()
 
 
-# 📤 TELEGRAM SEND
+# 📤 TELEGRAM SEND (SAFE)
 def send_telegram(msg):
-    global CHAT_ID
-    if not CHAT_ID:
+    if not BOT_TOKEN or not CHAT_ID:
+        print("Telegram not configured")
         return
 
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-    requests.post(url, data={"chat_id": CHAT_ID, "text": msg})
+    try:
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+        requests.post(url, data={
+            "chat_id": CHAT_ID,
+            "text": msg
+        })
+    except Exception as e:
+        print("Telegram error:", e)
 
 
-# 🎲 ASSIGN
+# 🎲 RANDOM SLOT ASSIGNMENT
 def assign_slots(singer):
     data = get_data()
     used = {d["slot"] for d in data}
 
+    # ❌ already assigned
     existing = [d["slot"] for d in data if d["name"] == singer]
     if existing:
         return None, f"Already assigned: {sorted(existing)}"
@@ -85,91 +101,74 @@ def assign_slots(singer):
     total = SINGERS[singer]
     available = [s for s in range(1, TOTAL_SLOTS + 1) if s not in used]
 
-    for _ in range(500):
+    for _ in range(700):
         if len(available) < total:
             break
 
         sample = sorted(random.sample(available, total))
 
-        block = {}
+        # block rule
+        block_count = {}
         valid = True
 
         for s in sample:
-            b = (s - 1) // 10
-            limit = 2 if total == 6 else 1
-            block[b] = block.get(b, 0) + 1
-            if block[b] > limit:
+            block = (s - 1) // 10
+            max_per_block = 2 if total == 6 else 1
+
+            block_count[block] = block_count.get(block, 0) + 1
+            if block_count[block] > max_per_block:
                 valid = False
                 break
 
-        for i in range(len(sample)-1):
-            if abs(sample[i] - sample[i+1]) <= 1:
-                valid = False
+        # spacing rule (no consecutive)
+        if valid:
+            for i in range(len(sample) - 1):
+                if abs(sample[i] - sample[i + 1]) <= 1:
+                    valid = False
+                    break
 
         if valid:
             return sample, None
 
-    return None, "No valid slots"
+    return None, "No valid slots available"
 
 
-# 🌐 WEBSITE
+# 🌐 MAIN ROUTE
 @app.route("/", methods=["GET", "POST"])
 def index():
     init_db()
-    data = sorted(get_data(), key=lambda x: x["slot"])
+
     result = None
+    data = sorted(get_data(), key=lambda x: x["slot"])
 
     if request.method == "POST":
         singer = request.form.get("name")
 
-        slots, error = assign_slots(singer)
+        if singer:
+            slots, error = assign_slots(singer)
 
-        if error:
-            result = error
-        else:
-            save_data(singer, slots)
-            result = f"{singer} → {slots}"
+            if error:
+                result = f"{singer}: {error}"
+            else:
+                save_data(singer, slots)
+                result = f"{singer} → {slots}"
 
-            send_telegram(f"🎤 {singer}\nSlots: {slots}")
+                # 📤 SEND TO TELEGRAM
+                msg = f"🎤 Karaoke Draw\n\nSinger: {singer}\nSlots: {', '.join(map(str, slots))}"
+                send_telegram(msg)
 
     return render_template("index.html", singers=SINGERS, data=data, result=result)
 
 
-# 🔁 RESET
+# 🔁 RESET ROUTE
 @app.route("/reset", methods=["POST"])
 def reset():
-    if request.form.get("password") == ADMIN_PASSWORD:
+    password = request.form.get("password")
+
+    if password == ADMIN_PASSWORD:
         reset_data()
-        send_telegram("⚠️ RESET DONE")
+        send_telegram("⚠️ Karaoke system RESET")
     return redirect("/")
-
-
-# 🤖 TELEGRAM WEBHOOK
-@app.route("/telegram", methods=["POST"])
-def telegram_webhook():
-    global CHAT_ID
-
-    data = request.json
-
-    if "message" in data:
-        msg = data["message"]
-        CHAT_ID = msg["chat"]["id"]
-        text = msg.get("text", "")
-
-        # ADMIN COMMANDS
-        if text == "/start":
-            send_telegram("✅ Bot connected!")
-
-        elif text == "/reset":
-            reset_data()
-            send_telegram("⚠️ System Reset via Telegram")
-
-        elif text == "/status":
-            all_data = get_data()
-            msg = "\n".join([f"{d['name']} → {d['slot']}" for d in all_data])
-            send_telegram("📊 Current Data:\n" + msg)
-
-    return "ok"
 
 
 if __name__ == "__main__":
