@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Karaoke Draw</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #000428, #004e92);
+            color: white;
+            text-align: center;
+        }
+
+        /* BIG HEADER */
+        .main-title {
+            font-size: 50px;
+            font-weight: bold;
+            margin-top: 20px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(255,255,255,0.6);
+        }
+
+        .branding {
+            font-size: 20px;
+            margin-top: 10px;
+            opacity: 0.9;
+        }
+
+        .branding span {
+            color: #00e6ff;
+            font-weight: bold;
+        }
+
+        /* CARD */
+        .card {
+            background: white;
+            color: black;
+            margin: 40px auto;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 450px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        select, button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 15px;
+            font-size: 18px;
+            border-radius: 10px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #ff512f, #dd2476);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        /* RESULT BIG DISPLAY */
+        .result {
+            margin-top: 30px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #ffeb3b;
+            text-shadow: 0 0 10px rgba(255,255,0,0.8);
+        }
+
+        /* TABLE */
+        table {
+            margin: 40px auto;
+            width: 90%;
+            max-width: 800px;
+            border-collapse: collapse;
+            background: white;
+            color: black;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #004e92;
+            color: white;
+        }
+
+        /* FOOTER BIG */
+        .footer {
+            margin-top: 30px;
+            font-size: 18px;
+            padding-bottom: 20px;
+        }
+
+        .footer span {
+            color: #00e6ff;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="main-title">🎤 KARAOKE DRAW SYSTEM 🎤</div>
+
+<div class="branding">
+    Organised by <span>RN Musical Group</span>
+</div>
+
+<div class="card">
+    <form method="POST">
+        <select name="name" required>
+            <option value="">Select Your Name</option>
+            {% for singer, songs in singers.items() %}
+                <option value="{{ singer }}">{{ singer }} ({{ songs }} songs)</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">🎲 DRAW YOUR SLOTS</button>
+    </form>
+
+    {% if result %}
+        <div class="result">{{ result }}</div>
+    {% endif %}
+</div>
+
+<table>
+    <tr>
+        <th>Singer</th>
+        <th>Slot</th>
+    </tr>
+    {% for item in data %}
+    <tr>
+        <td>{{ item.name }}</td>
+        <td>{{ item.slot }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<div class="footer">
+    💻 Developed by <span>Bhadresh Tech</span>
+</div>
+<div style="margin-top:40px;">
+    <h3>🔒 Admin Reset</h3>
+    <form method="POST" action="/reset">
+        <input type="password" name="password" placeholder="Enter admin password" required>
+        <button type="submit">Reset All Data</button>
+    </form>
+</div>
+
+</body>
+</html>
