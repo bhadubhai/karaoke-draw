@@ -157,15 +157,28 @@
 </table>
 
 <!-- RESET -->
-<div style="margin:15px;">
-    <form method="POST" action="/reset" style="display:flex; gap:5px;">
-        <input type="password" name="password" placeholder="🔑" 
-               style="flex:1; padding:8px; border-radius:6px;">
-        <button type="submit" 
-                style="padding:8px 12px; border-radius:6px;">
-            🔁
-        </button>
-    </form>
+<div style="margin:10px;">
+  <form method="POST" action="/reset" style="display:flex; gap:5px;">
+    
+    <input 
+      type="password" 
+      name="password" 
+      placeholder="🔑"
+      inputmode="numeric"
+      pattern="[0-9]*"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      spellcheck="false"
+      style="flex:1; padding:8px; border-radius:6px;"
+      required
+    >
+
+    <button type="submit" style="padding:8px 12px; border-radius:6px;">
+      🔁
+    </button>
+
+  </form>
 </div>
 
 <div class="footer">
