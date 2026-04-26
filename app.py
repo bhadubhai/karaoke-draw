@@ -14,16 +14,17 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
 # 🎤 Singer setup
 SINGERS = {
     "chetanbhai pandya": 6,
-    "chandreshbhai fichadiya": 6,
+    "chandreshbhai fichadiya": 1,
     "anilbhai mavadiya": 3,
     "jiteshbhai jivrajani": 3,
-    "kamleshbhai dave": 2,
-    "pareshbhai khakhkhar": 2,
-    "narendrabhai khakhkhar": 1,
-    "jaysukhbhai parekh": 1,
-    "rockstar": 3,
+    "kamleshbhai dave": 3,
+    "pareshbhai khakhkhar": 3,
+    "narendrabhai khakhkhar": 2,
+    "jaysukhbhai parekh": 2,
+    "rockstar": 2,
     "jagdishbhai kariya": 2,
-    "ashokbhai dhamecha": 1,
+    "ashokbhai dhamecha": 2,
+    "naynaben vyas ": 2
 }
 
 TOTAL_SLOTS = 31
