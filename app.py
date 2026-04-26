@@ -164,14 +164,13 @@ def index():
 # 🔁 RESET ROUTE
 @app.route("/reset", methods=["POST"])
 def reset():
-    password = request.form.get("password")
+    password = request.form.get("password", "").strip()
 
-    print("Reset clicked")
-    print("Entered:", password)
-    print("Expected:", ADMIN_PASSWORD)
+    print("RAW INPUT:", repr(password))
+    print("EXPECTED:", repr(ADMIN_PASSWORD))
 
     if password == ADMIN_PASSWORD:
-        print("Reset SUCCESS")
+        print("✅ RESET SUCCESS")
 
         reset_data()
 
@@ -180,7 +179,7 @@ def reset():
         except Exception as e:
             print("Telegram error:", e)
 
-    else:
-        print("Wrong password")
+        return redirect("/")
 
+    print("❌ WRONG PASSWORD")
     return redirect("/")
