@@ -166,11 +166,21 @@ def index():
 def reset():
     password = request.form.get("password")
 
+    print("Reset clicked")
+    print("Entered:", password)
+    print("Expected:", ADMIN_PASSWORD)
+
     if password == ADMIN_PASSWORD:
+        print("Reset SUCCESS")
+
         reset_data()
-        send_telegram("⚠️ Karaoke system RESET")
+
+        try:
+            send_telegram("⚠️ Karaoke system RESET")
+        except Exception as e:
+            print("Telegram error:", e)
+
+    else:
+        print("Wrong password")
+
     return redirect("/")
-
-
-if __name__ == "__main__":
-    app.run()
