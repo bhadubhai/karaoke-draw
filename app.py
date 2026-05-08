@@ -181,12 +181,10 @@ def index():
     global MODE
 
     init_db()
-        # ⚙️ MAINTENANCE PAGE
-    elif MODE == "maintenance":
-        return render_template("maintenance.html")
 
     # 🚀 COMING SOON
     if MODE == "coming":
+
         return render_template("index.html")
 
     # 🎤 DRAW SYSTEM
@@ -208,6 +206,7 @@ def index():
                 slots, error = assign_slots(singer)
 
                 if error:
+
                     result = error
 
                 else:
@@ -229,48 +228,13 @@ def index():
 
     # 🔴 LIVE PAGE
     elif MODE == "live":
+
         return render_template("live.html")
 
-    # 🚫 COMING SOON PAGE
-    if not DRAW_STARTED:
-        return render_template("index.html")
+    # ⚙️ MAINTENANCE PAGE
+    elif MODE == "maintenance":
 
-    # 🎤 DRAW SYSTEM PAGE
-    result = None
-
-    data = sorted(
-        get_data(),
-        key=lambda x: x["slot"]
-    )
-
-    if request.method == "POST":
-
-        singer = request.form.get("name")
-
-        if singer:
-
-            slots, error = assign_slots(singer)
-
-            if error:
-                result = error
-
-            else:
-
-                save_data(singer, slots)
-
-                result = f"{singer} → {slots}"
-
-                send_telegram(
-                    f"🎤 Karaoke Draw\n\nSinger: {singer}\nSlots: {slots}"
-                )
-
-    return render_template(
-        "draw.html",
-        singers=SINGERS,
-        data=data,
-        result=result
-    )
-
+        return render_template("maintenance.html")
 
 # 🤖 TELEGRAM CONTROL
 @app.route("/telegram", methods=["POST"])
