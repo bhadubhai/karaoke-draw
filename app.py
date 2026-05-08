@@ -221,49 +221,68 @@ def telegram_webhook():
 
     global DRAW_STARTED
 
+    print("📩 TELEGRAM HIT")
+
     data = request.json
 
-    if "message" in data:
+    print(data)
 
-        message = data["message"]
+    try:
 
-        text = message.get("text", "")
+        if "message" in data:
 
-        chat_id = str(message["chat"]["id"])
+            message = data["message"]
 
-        # 🔐 ADMIN CHECK
-        if chat_id != CHAT_ID:
-            return "Unauthorized"
+            text = message.get("text", "").strip()
 
-        # ▶ START DRAW
-        if text == "/startdraw":
+            chat_id = str(message["chat"]["id"])
 
-            DRAW_STARTED = True
+            print("TEXT:", text)
+            print("CHAT:", chat_id)
+            print("EXPECTED:", CHAT_ID)
 
-            send_telegram(
-                "🎤 Karaoke Draw STARTED"
-            )
+            # 🔐 ADMIN CHECK
+            if chat_id != str(CHAT_ID):
 
-        # ⏹ STOP DRAW
-        elif text == "/stopdraw":
+                print("❌ UNAUTHORIZED")
 
-            DRAW_STARTED = False
+                return "Unauthorized"
 
-            send_telegram(
-                "⏹ Karaoke Draw STOPPED"
-            )
+            # ▶ START DRAW
+            if text == "/startdraw":
 
-        # 🔁 RESET
-        elif text == "/reset":
+                DRAW_STARTED = True
 
-            reset_data()
+                print("✅ DRAW STARTED")
 
-            send_telegram(
-                "⚠️ Karaoke System RESET"
-            )
+                send_telegram(
+                    "🎤 Karaoke Draw STARTED"
+                )
+
+            # ⏹ STOP DRAW
+            elif text == "/stopdraw":
+
+                DRAW_STARTED = False
+
+                print("⏹ DRAW STOPPED")
+
+                send_telegram(
+                    "⏹ Karaoke Draw STOPPED"
+                )
+
+            # 🔁 RESET
+            elif text == "/reset":
+
+                reset_data()
+
+                print("🔁 RESET DONE")
+
+                send_telegram(
+                    "⚠️ Karaoke System RESET"
+                )
+
+    except Exception as e:
+
+        print("❌ ERROR:", e)
 
     return "ok"
-
-
-if __name__ == "__main__":
-    app.run()
