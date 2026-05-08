@@ -14,6 +14,156 @@
             color:white;
             text-align:center;
         }
+        /* LIVE STREAM SECTION */
+
+.live-box{
+
+    margin:45px 20px;
+
+    padding:40px 20px;
+
+    border-radius:26px;
+
+    text-align:center;
+
+    background:
+    linear-gradient(
+        135deg,
+        rgba(255,0,0,0.12),
+        rgba(14,165,233,0.12)
+    );
+
+    border:1px solid rgba(255,255,255,0.08);
+
+    box-shadow:
+    0 20px 50px rgba(0,0,0,0.35);
+}
+
+.live-badge{
+
+    display:inline-block;
+
+    background:red;
+
+    color:white;
+
+    padding:10px 20px;
+
+    border-radius:50px;
+
+    font-weight:bold;
+
+    margin-bottom:20px;
+
+    animation:pulseLive 1.5s infinite;
+}
+
+.live-title{
+
+    font-size:34px;
+
+    font-weight:800;
+
+    margin-bottom:16px;
+
+    color:white;
+}
+
+.live-subtitle{
+
+    color:#cbd5e1;
+
+    margin-bottom:12px;
+
+    font-size:18px;
+}
+
+.live-brand{
+
+    font-size:38px;
+
+    font-weight:900;
+
+    margin-bottom:25px;
+
+    background:linear-gradient(
+        135deg,
+        #38bdf8,
+        #9333ea,
+        #ec4899
+    );
+
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.live-btn{
+
+    display:inline-block;
+
+    padding:15px 28px;
+
+    border-radius:14px;
+
+    text-decoration:none;
+
+    color:white;
+
+    font-weight:700;
+
+    background:
+    linear-gradient(
+        135deg,
+        #ff0000,
+        #ff4d4d
+    );
+
+    transition:0.3s;
+
+    box-shadow:
+    0 10px 30px rgba(255,0,0,0.35);
+}
+
+.live-btn:hover{
+
+    transform:translateY(-5px) scale(1.03);
+}
+
+@keyframes pulseLive{
+
+    0%{
+        transform:scale(1);
+    }
+
+    50%{
+        transform:scale(1.08);
+    }
+
+    100%{
+        transform:scale(1);
+    }
+}
+
+/* MOBILE */
+
+@media(max-width:600px){
+
+    .live-title{
+        font-size:24px;
+    }
+
+    .live-brand{
+        font-size:28px;
+    }
+
+    .live-subtitle{
+        font-size:15px;
+    }
+
+    .live-btn{
+        width:100%;
+    }
+}
         /* PREMIUM BRANDING */
 
 .powered-section{
@@ -237,6 +387,33 @@
     {% endfor %}
 
 </table>
+    <div class="live-box">
+
+    <div class="live-badge">
+        🔴 LIVE ON YOUTUBE
+    </div>
+
+    <div class="live-title">
+        Watch Event Streaming Live
+    </div>
+
+    <div class="live-subtitle">
+        Professionally Managed & Streamed By
+    </div>
+
+    <div class="live-brand">
+        🎬 BHADRESH LIVE MEDIA
+    </div>
+
+    <a 
+        href="https://youtube.com/@bhadreshlivemedia"
+        target="_blank"
+        class="live-btn"
+    >
+        ▶ Watch Live On YouTube
+    </a>
+
+</div>
 <div class="powered-section">
 
     <div class="powered-text">
