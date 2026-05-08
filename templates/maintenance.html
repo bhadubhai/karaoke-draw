@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Maintenance</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+
+    min-height:100vh;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    text-align:center;
+
+    font-family:Arial,sans-serif;
+
+    background:
+    linear-gradient(
+        135deg,
+        #020617,
+        #0f172a,
+        #111827
+    );
+
+    color:white;
+
+    overflow:hidden;
+}
+
+.container{
+
+    width:100%;
+
+    max-width:900px;
+
+    padding:20px;
+}
+
+.badge{
+
+    display:inline-block;
+
+    padding:12px 24px;
+
+    border-radius:50px;
+
+    background:#f59e0b;
+
+    color:black;
+
+    font-weight:bold;
+
+    margin-bottom:25px;
+
+    animation:pulse 1.5s infinite;
+}
+
+h1{
+
+    font-size:65px;
+
+    margin-bottom:25px;
+}
+
+.subtitle{
+
+    font-size:22px;
+
+    color:#cbd5e1;
+
+    line-height:1.9;
+
+    margin-bottom:40px;
+}
+
+.brand{
+
+    font-size:46px;
+
+    font-weight:900;
+
+    margin-bottom:25px;
+
+    background:
+    linear-gradient(
+        135deg,
+        #38bdf8,
+        #9333ea,
+        #ec4899
+    );
+
+    -webkit-background-clip:text;
+
+    -webkit-text-fill-color:transparent;
+}
+
+.powered{
+
+    margin-top:40px;
+
+    color:#94a3b8;
+
+    font-size:18px;
+}
+
+.powered a{
+
+    color:#38bdf8;
+
+    text-decoration:none;
+
+    font-weight:bold;
+}
+
+@keyframes pulse{
+
+    0%{
+        transform:scale(1);
+    }
+
+    50%{
+        transform:scale(1.08);
+    }
+
+    100%{
+        transform:scale(1);
+    }
+}
+
+/* MOBILE */
+
+@media(max-width:600px){
+
+    h1{
+        font-size:38px;
+    }
+
+    .brand{
+        font-size:28px;
+    }
+
+    .subtitle{
+        font-size:16px;
+    }
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<div class="badge">
+⚙️ MAINTENANCE MODE
+</div>
+
+<h1>
+Preparing Next Event
+</h1>
+
+<div class="brand">
+🚀 BHADRESH TECH
+</div>
+
+<div class="subtitle">
+
+The website is currently being updated for the next musical event.<br><br>
+
+Please check back soon for:
+<br>
+🎤 Karaoke Draws<br>
+🔴 Live Streaming<br>
+🎬 Event Updates
+
+</div>
+
+<div class="powered">
+
+Managed By
+
+<a href="https://bhadreshtech.site/" target="_blank">
+Bhadresh Tech
+</a>
+
+</div>
+
+</div>
+
+</body>
+</html>
