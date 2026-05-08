@@ -1,3 +1,10 @@
+# WEBSITE MODES
+
+MODE = "coming"
+
+# coming
+# draw
+# live
 from flask import Flask, render_template, request, redirect
 import sqlite3
 import random
@@ -170,9 +177,55 @@ def assign_slots(singer):
 @app.route("/", methods=["GET", "POST"])
 def index():
 
-    global DRAW_STARTED
+    global MODE
 
     init_db()
+
+    # 🚀 COMING SOON
+    if MODE == "coming":
+        return render_template("index.html")
+
+    # 🎤 DRAW SYSTEM
+    elif MODE == "draw":
+
+        result = None
+
+        data = sorted(
+            get_data(),
+            key=lambda x: x["slot"]
+        )
+
+        if request.method == "POST":
+
+            singer = request.form.get("name")
+
+            if singer:
+
+                slots, error = assign_slots(singer)
+
+                if error:
+                    result = error
+
+                else:
+
+                    save_data(singer, slots)
+
+                    result = f"{singer} → {slots}"
+
+                    send_telegram(
+                        f"🎤 Karaoke Draw\n\nSinger: {singer}\nSlots: {slots}"
+                    )
+
+        return render_template(
+            "draw.html",
+            singers=SINGERS,
+            data=data,
+            result=result
+        )
+
+    # 🔴 LIVE PAGE
+    elif MODE == "live":
+        return render_template("live.html")
 
     # 🚫 COMING SOON PAGE
     if not DRAW_STARTED:
@@ -219,9 +272,7 @@ def index():
 @app.route("/telegram", methods=["POST"])
 def telegram_webhook():
 
-    global DRAW_STARTED
-
-    print("📩 TELEGRAM HIT")
+    global MODE
 
     data = request.json
 
@@ -237,37 +288,35 @@ def telegram_webhook():
 
             chat_id = str(message["chat"]["id"])
 
-            print("TEXT:", text)
-            print("CHAT:", chat_id)
-            print("EXPECTED:", CHAT_ID)
-
             # 🔐 ADMIN CHECK
             if chat_id != str(CHAT_ID):
-
-                print("❌ UNAUTHORIZED")
-
                 return "Unauthorized"
 
-            # ▶ START DRAW
+            # 🎤 DRAW MODE
             if text == "/startdraw":
 
-                DRAW_STARTED = True
-
-                print("✅ DRAW STARTED")
+                MODE = "draw"
 
                 send_telegram(
                     "🎤 Karaoke Draw STARTED"
                 )
 
-            # ⏹ STOP DRAW
-            elif text == "/stopdraw":
+            # 🔴 LIVE MODE
+            elif text == "/live":
 
-                DRAW_STARTED = False
-
-                print("⏹ DRAW STOPPED")
+                MODE = "live"
 
                 send_telegram(
-                    "⏹ Karaoke Draw STOPPED"
+                    "🔴 LIVE MODE ACTIVATED"
+                )
+
+            # ⏹ END EVENT
+            elif text == "/end":
+
+                MODE = "coming"
+
+                send_telegram(
+                    "⏹ Event Ended\n\nComing Soon Page Activated"
                 )
 
             # 🔁 RESET
@@ -275,14 +324,12 @@ def telegram_webhook():
 
                 reset_data()
 
-                print("🔁 RESET DONE")
-
                 send_telegram(
-                    "⚠️ Karaoke System RESET"
+                    "⚠️ Karaoke Draw Reset"
                 )
 
     except Exception as e:
 
-        print("❌ ERROR:", e)
+        print(e)
 
     return "ok"
