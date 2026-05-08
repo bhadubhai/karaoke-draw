@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Karaoke Draw</title>
+
+    <style>
+
+        body{
+            margin:0;
+            font-family:Arial,sans-serif;
+            background:linear-gradient(135deg,#000428,#004e92);
+            color:white;
+            text-align:center;
+        }
+
+        h1{
+            margin-top:20px;
+        }
+
+        .card{
+            background:white;
+            color:black;
+            margin:20px;
+            padding:20px;
+            border-radius:15px;
+        }
+
+        select,button{
+            width:100%;
+            padding:12px;
+            margin-top:10px;
+            border:none;
+            border-radius:8px;
+            font-size:16px;
+        }
+
+        button{
+            background:#ff5722;
+            color:white;
+            font-weight:bold;
+        }
+
+        .result{
+            margin-top:15px;
+            font-size:18px;
+            color:#ffeb3b;
+            font-weight:bold;
+        }
+
+        table{
+            width:95%;
+            margin:auto;
+            background:white;
+            color:black;
+            border-collapse:collapse;
+            border-radius:10px;
+            overflow:hidden;
+        }
+
+        th,td{
+            padding:10px;
+            border-bottom:1px solid #ddd;
+        }
+
+        th{
+            background:#004e92;
+            color:white;
+        }
+
+    </style>
+</head>
+<body>
+
+<h1>🎤 Karaoke Draw System</h1>
+
+<div class="card">
+
+    <form method="POST">
+
+        <select name="name" required>
+
+            <option value="">Select Singer</option>
+
+            {% for singer, songs in singers.items() %}
+                <option value="{{ singer }}">
+                    {{ singer }} ({{ songs }} songs)
+                </option>
+            {% endfor %}
+
+        </select>
+
+        <button type="submit">
+            🎲 Draw Slots
+        </button>
+
+    </form>
+
+    {% if result %}
+        <div class="result">
+            {{ result }}
+        </div>
+    {% endif %}
+
+</div>
+
+<table>
+
+    <tr>
+        <th>Singer</th>
+        <th>Slot</th>
+    </tr>
+
+    {% for item in data %}
+    <tr>
+        <td>{{ item.name }}</td>
+        <td>{{ item.slot }}</td>
+    </tr>
+    {% endfor %}
+
+</table>
+
+</body>
+</html>
