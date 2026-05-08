@@ -1,189 +1,230 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Karaoke Draw</title>
-
-    <!-- MOBILE RESPONSIVE -->
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RN Musical Group</title>
 
     <style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #000428, #004e92);
-            color: white;
-            text-align: center;
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
         }
 
-        h1 {
-            font-size: 26px;
-            margin-top: 20px;
+        body{
+            font-family:Arial,sans-serif;
+            min-height:100vh;
+            background:linear-gradient(135deg,#000428,#004e92);
+            color:white;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            text-align:center;
+            padding:20px;
         }
 
-        .branding {
-            font-size: 14px;
-            margin-bottom: 20px;
+        .container{
+            width:100%;
+            max-width:700px;
+            background:rgba(255,255,255,0.08);
+            backdrop-filter:blur(10px);
+            border-radius:20px;
+            padding:40px 20px;
+            box-shadow:0 10px 30px rgba(0,0,0,0.4);
         }
 
-        .branding span {
-            color: #00e6ff;
-            font-weight: bold;
+        h1{
+            font-size:40px;
+            margin-bottom:10px;
         }
 
-        /* CARD */
-        .card {
-            background: white;
-            color: black;
-            margin: 20px;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        .subtitle{
+            color:#00e6ff;
+            margin-bottom:25px;
+            font-size:18px;
         }
 
-        select, button, input {
-            width: 100%;
-            padding: 12px;
-            margin-top: 10px;
-            font-size: 16px;
-            border-radius: 8px;
-            border: none;
+        .coming{
+            font-size:34px;
+            color:#ffe600;
+            font-weight:bold;
+            margin-bottom:25px;
+            animation:pulse 1.5s infinite;
         }
 
-        button {
-            background: linear-gradient(135deg, #ff512f, #dd2476);
-            color: white;
-            font-weight: bold;
+        .event-box{
+            background:rgba(255,255,255,0.08);
+            padding:25px;
+            border-radius:15px;
+            margin-top:20px;
         }
 
-        button:active {
-            transform: scale(0.97);
+        .event-details{
+            line-height:2;
+            font-size:18px;
         }
 
-        .result {
-            margin-top: 15px;
-            font-size: 18px;
-            font-weight: bold;
-            color: #ffeb3b;
+        .countdown{
+            display:flex;
+            justify-content:center;
+            gap:10px;
+            flex-wrap:wrap;
+            margin-top:25px;
         }
 
-        /* TABLE */
-        table {
-            width: 95%;
-            margin: 20px auto;
-            border-collapse: collapse;
-            background: white;
-            color: black;
-            border-radius: 10px;
-            overflow: hidden;
-            font-size: 14px;
+        .time-card{
+            background:rgba(255,255,255,0.12);
+            padding:15px;
+            border-radius:12px;
+            min-width:80px;
         }
 
-        th, td {
-            padding: 8px;
-            border-bottom: 1px solid #ddd;
+        .time-card span{
+            display:block;
+            font-size:28px;
+            font-weight:bold;
+            color:#ffe600;
         }
 
-        th {
-            background: #004e92;
-            color: white;
+        .draw-status{
+            margin-top:25px;
+            background:#ff9800;
+            color:black;
+            padding:14px;
+            border-radius:12px;
+            font-weight:bold;
         }
 
-        /* MOBILE OPTIMIZATION */
-        @media (max-width: 600px) {
-            h1 {
-                font-size: 22px;
+        .footer{
+            margin-top:30px;
+            font-size:14px;
+            color:#ddd;
+        }
+
+        .footer span{
+            color:#00e6ff;
+            font-weight:bold;
+        }
+
+        @keyframes pulse{
+            0%{transform:scale(1);}
+            50%{transform:scale(1.05);}
+            100%{transform:scale(1);}
+        }
+
+        @media(max-width:600px){
+
+            h1{
+                font-size:30px;
             }
 
-            .card {
-                margin: 10px;
-                padding: 15px;
+            .coming{
+                font-size:26px;
             }
 
-            table {
-                font-size: 12px;
+            .event-details{
+                font-size:16px;
             }
-        }
 
-        .footer {
-            margin: 20px;
-            font-size: 12px;
-        }
+            .time-card{
+                min-width:70px;
+                padding:12px;
+            }
 
-        .footer span {
-            color: #00e6ff;
+            .time-card span{
+                font-size:22px;
+            }
         }
 
     </style>
 </head>
 <body>
 
-<h1>🎤 Karaoke Draw</h1>
+<div class="container">
 
-<div class="branding">
-    Organised by <span>RN Musical Group</span><br>
-    Developed by <span>Bhadresh Tech</span>
+    <h1>🎤 RN Musical Group</h1>
+
+    <div class="subtitle">
+        Grand Karaoke Musical Night
+    </div>
+
+    <div class="coming">
+        🚀 NEXT EVENT COMING SOON 🚀
+    </div>
+
+    <div class="event-box">
+
+        <div class="event-details">
+            📍 Venue: <b>Hemughadvi Mini Auditorium</b><br>
+            📅 Date: <b>23/05/2026</b><br>
+            ⏰ Time: <b>8:00 PM to 1:00 AM</b><br>
+            🎲 Karaoke Draw Will Be Live Soon
+        </div>
+
+        <div class="countdown">
+
+            <div class="time-card">
+                <span id="days">00</span>
+                Days
+            </div>
+
+            <div class="time-card">
+                <span id="hours">00</span>
+                Hours
+            </div>
+
+            <div class="time-card">
+                <span id="minutes">00</span>
+                Minutes
+            </div>
+
+            <div class="time-card">
+                <span id="seconds">00</span>
+                Seconds
+            </div>
+
+        </div>
+    </div>
+
+    <div class="draw-status">
+        🎤 Karaoke Draw Will Be Live Soon...
+    </div>
+
+    <div class="footer">
+        Organized by <span>RN Musical Group</span><br><br>
+        Website Developed by <span>Bhadresh Tech</span>
+    </div>
+
 </div>
 
-<div class="card">
-    <form method="POST">
-        <select name="name" required>
-            <option value="">Select Your Name</option>
-            {% for singer, songs in singers.items() %}
-                <option value="{{ singer }}">{{ singer }} ({{ songs }})</option>
-            {% endfor %}
-        </select>
+<script>
 
-        <button type="submit">🎲 Draw Slots</button>
-    </form>
+const eventDate = new Date("May 23, 2026 20:00:00").getTime();
 
-    {% if result %}
-        <div class="result">{{ result }}</div>
-    {% endif %}
-</div>
+const timer = setInterval(function(){
 
-<!-- TABLE -->
-<table>
-    <tr>
-        <th>Singer</th>
-        <th>Slot</th>
-    </tr>
+    const now = new Date().getTime();
 
-    {% for item in data %}
-    <tr>
-        <td>{{ item.name }}</td>
-        <td>{{ item.slot }}</td>
-    </tr>
-    {% endfor %}
-</table>
+    const distance = eventDate - now;
 
-<!-- RESET -->
-<div style="margin:10px;">
-  <form method="POST" action="/reset" style="display:flex; gap:5px;">
-    
-    <input 
-      type="password" 
-      name="password" 
-      placeholder="🔑"
-      inputmode="numeric"
-      pattern="[0-9]*"
-      autocomplete="off"
-      autocorrect="off"
-      autocapitalize="off"
-      spellcheck="false"
-      style="flex:1; padding:8px; border-radius:6px;"
-      required
-    >
+    const days = Math.floor(distance / (1000*60*60*24));
 
-    <button type="submit" style="padding:8px 12px; border-radius:6px;">
-      🔁
-    </button>
+    const hours = Math.floor((distance % (1000*60*60*24)) / (1000*60*60));
 
-  </form>
-</div>
+    const minutes = Math.floor((distance % (1000*60*60)) / (1000*60));
 
-<div class="footer">
-    🎤 Live Event System
-</div>
+    const seconds = Math.floor((distance % (1000*60)) / 1000);
+
+    document.getElementById("days").innerHTML = days;
+    document.getElementById("hours").innerHTML = hours;
+    document.getElementById("minutes").innerHTML = minutes;
+    document.getElementById("seconds").innerHTML = seconds;
+
+},1000);
+
+</script>
 
 </body>
 </html>
