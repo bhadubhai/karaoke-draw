@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>LIVE NOW</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+
+    min-height:100vh;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    text-align:center;
+
+    font-family:Arial,sans-serif;
+
+    background:
+    linear-gradient(
+        135deg,
+        #000000,
+        #0f172a,
+        #1e293b
+    );
+
+    color:white;
+
+    overflow:hidden;
+}
+
+.container{
+
+    width:100%;
+
+    max-width:900px;
+
+    padding:20px;
+}
+
+.live-badge{
+
+    display:inline-block;
+
+    background:red;
+
+    padding:14px 24px;
+
+    border-radius:50px;
+
+    font-weight:bold;
+
+    margin-bottom:25px;
+
+    animation:pulse 1.5s infinite;
+}
+
+h1{
+
+    font-size:70px;
+
+    margin-bottom:20px;
+}
+
+.brand{
+
+    font-size:50px;
+
+    font-weight:900;
+
+    margin-bottom:25px;
+
+    background:
+    linear-gradient(
+        135deg,
+        #38bdf8,
+        #9333ea,
+        #ec4899
+    );
+
+    -webkit-background-clip:text;
+
+    -webkit-text-fill-color:transparent;
+}
+
+.subtitle{
+
+    font-size:22px;
+
+    color:#cbd5e1;
+
+    line-height:1.8;
+
+    margin-bottom:40px;
+}
+
+.live-btn{
+
+    display:inline-block;
+
+    padding:18px 35px;
+
+    border-radius:16px;
+
+    text-decoration:none;
+
+    background:
+    linear-gradient(
+        135deg,
+        #ff0000,
+        #ff4d4d
+    );
+
+    color:white;
+
+    font-size:22px;
+
+    font-weight:bold;
+
+    box-shadow:
+    0 15px 40px rgba(255,0,0,0.35);
+
+    transition:0.3s;
+}
+
+.live-btn:hover{
+
+    transform:translateY(-5px) scale(1.03);
+}
+
+.powered{
+
+    margin-top:50px;
+
+    color:#94a3b8;
+
+    font-size:18px;
+}
+
+.powered a{
+
+    color:#38bdf8;
+
+    text-decoration:none;
+
+    font-weight:bold;
+}
+
+@keyframes pulse{
+
+    0%{
+        transform:scale(1);
+    }
+
+    50%{
+        transform:scale(1.08);
+    }
+
+    100%{
+        transform:scale(1);
+    }
+}
+
+/* MOBILE */
+
+@media(max-width:600px){
+
+    h1{
+        font-size:42px;
+    }
+
+    .brand{
+        font-size:30px;
+    }
+
+    .subtitle{
+        font-size:16px;
+    }
+
+    .live-btn{
+        width:100%;
+        font-size:18px;
+    }
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<div class="live-badge">
+🔴 LIVE NOW
+</div>
+
+<h1>
+EVENT STREAMING LIVE
+</h1>
+
+<div class="brand">
+🎬 BHADRESH LIVE MEDIA
+</div>
+
+<div class="subtitle">
+Watch the musical event live on YouTube.<br>
+High quality live coverage powered by Bhadresh Live Media.
+</div>
+
+<a
+href="https://youtube.com/@bhadreshlivemedia"
+target="_blank"
+class="live-btn"
+>
+▶ WATCH LIVE ON YOUTUBE
+</a>
+
+<div class="powered">
+
+Powered By
+
+<a href="https://bhadreshtech.site/" target="_blank">
+Bhadresh Tech
+</a>
+
+</div>
+
+</div>
+
+</body>
+</html>
