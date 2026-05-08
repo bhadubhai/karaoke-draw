@@ -201,28 +201,49 @@
 
 <script>
 
-const eventDate = new Date("May 23, 2026 20:00:00").getTime();
+    // EVENT TIME IN IST
+    const eventDateIST = new Date(
+        "2026-05-23T20:00:00+05:30"
+    ).getTime();
 
-const timer = setInterval(function(){
+    const timer = setInterval(function () {
 
-    const now = new Date().getTime();
+        const now = new Date().getTime();
 
-    const distance = eventDate - now;
+        const distance = eventDateIST - now;
 
-    const days = Math.floor(distance / (1000*60*60*24));
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
 
-    const hours = Math.floor((distance % (1000*60*60*24)) / (1000*60*60));
+        const hours = Math.floor(
+            (distance % (1000 * 60 * 60 * 24))
+            / (1000 * 60 * 60)
+        );
 
-    const minutes = Math.floor((distance % (1000*60*60)) / (1000*60));
+        const minutes = Math.floor(
+            (distance % (1000 * 60 * 60))
+            / (1000 * 60)
+        );
 
-    const seconds = Math.floor((distance % (1000*60)) / 1000);
+        const seconds = Math.floor(
+            (distance % (1000 * 60))
+            / 1000
+        );
 
-    document.getElementById("days").innerHTML = days;
-    document.getElementById("hours").innerHTML = hours;
-    document.getElementById("minutes").innerHTML = minutes;
-    document.getElementById("seconds").innerHTML = seconds;
+        document.getElementById("days").innerHTML = days;
+        document.getElementById("hours").innerHTML = hours;
+        document.getElementById("minutes").innerHTML = minutes;
+        document.getElementById("seconds").innerHTML = seconds;
 
-},1000);
+        // EVENT STARTED
+        if (distance < 0) {
+
+            clearInterval(timer);
+
+            document.querySelector(".coming").innerHTML =
+                "🎉 EVENT STARTED 🎉";
+        }
+
+    }, 1000);
 
 </script>
 
