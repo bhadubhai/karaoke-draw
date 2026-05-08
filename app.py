@@ -5,6 +5,7 @@ MODE = "coming"
 # coming
 # draw
 # live
+# maintenance
 from flask import Flask, render_template, request, redirect
 import sqlite3
 import random
@@ -180,6 +181,9 @@ def index():
     global MODE
 
     init_db()
+        # ⚙️ MAINTENANCE PAGE
+    elif MODE == "maintenance":
+        return render_template("maintenance.html")
 
     # 🚀 COMING SOON
     if MODE == "coming":
@@ -328,6 +332,14 @@ def telegram_webhook():
                     "⚠️ Karaoke Draw Reset"
                 )
 
+            # ⚙️ MAINTENANCE MODE
+            elif text == "/maintenance":
+
+                MODE = "maintenance"
+
+                send_telegram(
+                    "⚙️ Maintenance Mode Activated"
+                )
     except Exception as e:
 
         print(e)
