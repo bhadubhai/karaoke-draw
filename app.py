@@ -1,4 +1,20 @@
+from flask import Flask, render_template, request, redirect
+import requests
+import random
+import os
+
+app = Flask(__name__)
+
+# =========================================
+# TELEGRAM CONFIG
+# =========================================
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+CHAT_ID = os.getenv("CHAT_ID")
+
+# =========================================
 # WEBSITE MODES
+# =========================================
 
 MODE = "coming"
 
@@ -6,23 +22,17 @@ MODE = "coming"
 # draw
 # live
 # maintenance
-from flask import Flask, render_template, request, redirect
-import sqlite3
-import random
-import requests
-import os
 
-app = Flask(__name__)
+# =========================================
+# OPEN MIC SETTINGS
+# =========================================
 
-# 🔐 ENV VARIABLES
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-CHAT_ID = os.getenv("CHAT_ID")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "1111")
+MAX_CHILDREN = 32
 
-# 🎤 DRAW STATUS
-DRAW_STARTED = False
+# =========================================
+# KARAOKE SETTINGS
+# =========================================
 
-# 🎵 SINGERS
 SINGERS = {
     "chetanbhai pandya": 6,
     "chandreshbhai fichadiya": 6,
@@ -39,163 +49,121 @@ SINGERS = {
 
 TOTAL_SLOTS = 31
 
+used_slots = []
+draw_data = []
 
-# 📁 DB INIT
-def init_db():
-    conn = sqlite3.connect("data.db")
-    c = conn.cursor()
+# =========================================
+# TELEGRAM FUNCTION
+# =========================================
 
-    c.execute("""
-        CREATE TABLE IF NOT EXISTS draws (
-            singer TEXT,
-            slot INTEGER
-        )
-    """)
+def send_telegram(message):
 
-    conn.commit()
-    conn.close()
+    url = (
+        f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    )
 
-
-# 📊 GET DATA
-def get_data():
-    conn = sqlite3.connect("data.db")
-    c = conn.cursor()
-
-    c.execute("SELECT singer, slot FROM draws")
-
-    rows = c.fetchall()
-
-    conn.close()
-
-    return [{"name": r[0], "slot": r[1]} for r in rows]
-
-
-# 💾 SAVE DATA
-def save_data(name, slots):
-    conn = sqlite3.connect("data.db")
-    c = conn.cursor()
-
-    for slot in slots:
-        c.execute(
-            "INSERT INTO draws VALUES (?, ?)",
-            (name, slot)
-        )
-
-    conn.commit()
-    conn.close()
-
-
-# 🔁 RESET
-def reset_data():
-    conn = sqlite3.connect("data.db")
-    c = conn.cursor()
-
-    c.execute("DELETE FROM draws")
-
-    conn.commit()
-    conn.close()
-
-
-# 📤 TELEGRAM
-def send_telegram(msg):
-
-    if not BOT_TOKEN or not CHAT_ID:
-        print("Missing Telegram config")
-        return
-
-    try:
-
-        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-
-        requests.post(url, data={
+    requests.post(
+        url,
+        data={
             "chat_id": CHAT_ID,
-            "text": msg
-        })
+            "text": message
+        }
+    )
 
-    except Exception as e:
-        print("Telegram Error:", e)
+# =========================================
+# RESET FUNCTIONS
+# =========================================
 
+def reset_data():
 
-# 🎲 RANDOM SLOT ASSIGNMENT
+    global used_slots
+    global draw_data
+
+    used_slots = []
+    draw_data = []
+
+def reset_openmic():
+
+    with open("openmic_count.txt", "w") as f:
+        f.write("0")
+
+# =========================================
+# OPENMIC COUNT
+# =========================================
+
+def get_total_openmic_registrations():
+
+    if not os.path.exists("openmic_count.txt"):
+
+        with open("openmic_count.txt", "w") as f:
+            f.write("0")
+
+    with open("openmic_count.txt", "r") as f:
+
+        return int(f.read())
+
+# =========================================
+# DRAW SYSTEM
+# =========================================
+
 def assign_slots(singer):
 
-    data = get_data()
+    global used_slots
 
-    used = {d["slot"] for d in data}
-
-    existing = [
-        d["slot"] for d in data
-        if d["name"] == singer
-    ]
-
-    if existing:
-        return None, f"Already assigned: {sorted(existing)}"
-
-    total = SINGERS[singer]
+    total_songs = SINGERS[singer]
 
     available = [
-        s for s in range(1, TOTAL_SLOTS + 1)
-        if s not in used
+        x for x in range(1, TOTAL_SLOTS + 1)
+        if x not in used_slots
     ]
 
-    for _ in range(700):
+    random.shuffle(available)
 
-        if len(available) < total:
+    selected = []
+
+    for slot in available:
+
+        # prevent near slots
+        if any(abs(slot - s) <= 1 for s in selected):
+            continue
+
+        selected.append(slot)
+
+        if len(selected) == total_songs:
             break
 
-        sample = sorted(random.sample(available, total))
+    if len(selected) != total_songs:
 
-        block_count = {}
-        valid = True
+        return None, "Not enough slots"
 
-        for s in sample:
+    used_slots.extend(selected)
 
-            block = (s - 1) // 10
+    return sorted(selected), None
 
-            max_per_block = 2 if total == 6 else 1
+# =========================================
+# MAIN WEBSITE
+# =========================================
 
-            block_count[block] = block_count.get(block, 0) + 1
-
-            if block_count[block] > max_per_block:
-                valid = False
-                break
-
-        # ❌ no consecutive
-        if valid:
-            for i in range(len(sample)-1):
-
-                if abs(sample[i] - sample[i+1]) <= 1:
-                    valid = False
-                    break
-
-        if valid:
-            return sample, None
-
-    return None, "No valid slots available"
-
-
-# 🌐 MAIN WEBSITE
 @app.route("/", methods=["GET", "POST"])
 def index():
 
     global MODE
 
-    init_db()
+    # =====================================
+    # COMING SOON
+    # =====================================
 
-    # 🚀 COMING SOON
     if MODE == "coming":
 
         return render_template("index.html")
 
-    # 🎤 DRAW SYSTEM
+    # =====================================
+    # DRAW SYSTEM
+    # =====================================
+
     elif MODE == "draw":
 
         result = None
-
-        data = sorted(
-            get_data(),
-            key=lambda x: x["slot"]
-        )
 
         if request.method == "POST":
 
@@ -211,30 +179,109 @@ def index():
 
                 else:
 
-                    save_data(singer, slots)
+                    draw_data.append({
+                        "name": singer,
+                        "slots": slots
+                    })
 
-                    result = f"{singer} → {slots}"
+                    result = (
+                        f"{singer} → {slots}"
+                    )
 
                     send_telegram(
-                        f"🎤 Karaoke Draw\n\nSinger: {singer}\nSlots: {slots}"
+                        f"🎤 Karaoke Draw\n\n"
+                        f"Singer: {singer}\n"
+                        f"Slots: {slots}"
                     )
 
         return render_template(
             "draw.html",
             singers=SINGERS,
-            data=data,
+            data=draw_data,
             result=result
         )
 
-    # 🔴 LIVE PAGE
+    # =====================================
+    # LIVE MODE
+    # =====================================
+
     elif MODE == "live":
 
         return render_template("live.html")
 
-    # ⚙️ MAINTENANCE PAGE
+    # =====================================
+    # MAINTENANCE
+    # =====================================
+
     elif MODE == "maintenance":
 
-        return render_template("maintenance.html")
+        return render_template(
+            "maintenance.html"
+        )
+
+# =========================================
+# OPEN MIC PAGE
+# =========================================
+
+@app.route("/openmic", methods=["GET", "POST"])
+def openmic():
+
+    total = get_total_openmic_registrations()
+
+    # REGISTRATION CLOSED
+    if total >= MAX_CHILDREN:
+
+        return (
+            "🎤 Open Mic Registrations Closed"
+        )
+
+    if request.method == "POST":
+
+        name = request.form.get("name")
+        age = request.form.get("age")
+        parent = request.form.get("parent")
+        mobile = request.form.get("mobile")
+        performance = request.form.get("performance")
+
+        # AGE VALIDATION
+        if int(age) > 15:
+
+            return (
+                "Only children up to 15 years allowed"
+            )
+
+        # UPDATE COUNT
+        with open("openmic_count.txt", "w") as f:
+
+            f.write(str(total + 1))
+
+        # TELEGRAM MESSAGE
+        send_telegram(
+            f"🎉 OPEN MIC REGISTRATION\n\n"
+            f"Child: {name}\n"
+            f"Age: {age}\n"
+            f"Parent: {parent}\n"
+            f"Mobile: {mobile}\n"
+            f"Performance: {performance}\n"
+            f"Payment: ₹100 Pending\n\n"
+            f"Venue: Evening Post, Kasturba Road, Rajkot"
+        )
+
+        # PAYMENT LINK
+        return redirect(
+            "https://rzp.io/rzp/YOURPAYMENTLINK"
+        )
+
+    remaining = MAX_CHILDREN - total
+
+    return render_template(
+        "openmic.html",
+        remaining=remaining
+    )
+
+# =========================================
+# TELEGRAM WEBHOOK
+# =========================================
 
 @app.route("/telegram", methods=["POST"])
 def telegram_webhook():
@@ -249,16 +296,24 @@ def telegram_webhook():
 
             message = data["message"]
 
-            text = message.get("text", "").strip()
+            text = (
+                message.get("text", "")
+                .strip()
+            )
 
-            chat_id = str(message["chat"]["id"])
+            chat_id = str(
+                message["chat"]["id"]
+            )
 
             # SECURITY
             if chat_id != str(CHAT_ID):
 
                 return "Unauthorized"
 
-            # 🎤 START DRAW
+            # =================================
+            # START DRAW
+            # =================================
+
             if text == "/startdraw":
 
                 MODE = "draw"
@@ -267,7 +322,10 @@ def telegram_webhook():
                     "🎤 Karaoke Draw Started"
                 )
 
-            # 🔴 LIVE MODE
+            # =================================
+            # LIVE MODE
+            # =================================
+
             elif text == "/live":
 
                 MODE = "live"
@@ -276,7 +334,10 @@ def telegram_webhook():
                     "🔴 LIVE MODE ACTIVATED"
                 )
 
-            # ⏹ END EVENT
+            # =================================
+            # COMING SOON
+            # =================================
+
             elif text == "/end":
 
                 MODE = "coming"
@@ -285,7 +346,10 @@ def telegram_webhook():
                     "⏹ Coming Soon Mode Activated"
                 )
 
-            # ⚙️ MAINTENANCE
+            # =================================
+            # MAINTENANCE
+            # =================================
+
             elif text == "/maintenance":
 
                 MODE = "maintenance"
@@ -294,7 +358,10 @@ def telegram_webhook():
                     "⚙️ Maintenance Mode Activated"
                 )
 
-            # 🔁 RESET DRAW
+            # =================================
+            # RESET DRAW
+            # =================================
+
             elif text == "/reset":
 
                 reset_data()
@@ -303,14 +370,17 @@ def telegram_webhook():
                     "🔁 Karaoke Draw Reset"
                 )
 
-            # 🎤 RESET OPEN MIC
+            # =================================
+            # RESET OPENMIC
+            # =================================
+
             elif text == "/resetopenmic":
 
-                with open("openmic_count.txt", "w") as f:
-                    f.write("0")
+                reset_openmic()
 
                 send_telegram(
-                    "🎤 Open Mic Reset Successful\\n\\n32 Slots Reopened ✅"
+                    "🎤 Open Mic Reset Successful\n\n"
+                    "32 Slots Reopened ✅"
                 )
 
     except Exception as e:
@@ -318,106 +388,11 @@ def telegram_webhook():
         print("ERROR:", e)
 
     return "ok"
-    
-            MAX_CHILDREN = 32
 
-@app.route("/openmic", methods=["GET", "POST"])
-def openmic():
+# =========================================
+# RUN APP
+# =========================================
 
-    # CREATE FILE IF NOT EXISTS
-    if not os.path.exists("openmic_count.txt"):
+if __name__ == "__main__":
 
-        with open("openmic_count.txt", "w") as f:
-            f.write("0")
-
-    # READ COUNT
-    with open("openmic_count.txt", "r") as f:
-
-        total = int(f.read())
-
-    # REGISTRATION CLOSED
-    if total >= MAX_CHILDREN:
-
-        return "🎤 Open Mic Registrations Closed"
-
-    if request.method == "POST":
-
-        name = request.form.get("name")
-        age = request.form.get("age")
-        parent = request.form.get("parent")
-        mobile = request.form.get("mobile")
-        performance = request.form.get("performance")
-
-        # AGE CHECK
-        if int(age) > 15:
-
-            return "Only children up to 15 years allowed"
-
-        # UPDATE COUNT
-        with open("openmic_count.txt", "w") as f:
-
-            f.write(str(total + 1))
-
-        # TELEGRAM MESSAGE
-        send_telegram(
-            f"🎉 OPEN MIC REGISTRATION\\n\\n"
-            f"Child: {name}\\n"
-            f"Age: {age}\\n"
-            f"Parent: {parent}\\n"
-            f"Mobile: {mobile}\\n"
-            f"Performance: {performance}\\n"
-            f"Payment: ₹100 Pending\\n\\n"
-            f"Venue: Evening Post, Kasturba Road, Rajkot"
-        )
-
-        # PAYMENT LINK
-        return redirect(
-            "https://rzp.io/rzp/gKUDnppW"
-        )
-
-    remaining = MAX_CHILDREN - total
-
-    return render_template(
-        "openmic.html",
-        remaining=remaining
-    )
-            # 🔴 LIVE MODE
-            elif text == "/live":
-
-                MODE = "live"
-
-                send_telegram(
-                    "🔴 LIVE MODE ACTIVATED"
-                )
-
-            # ⏹ END EVENT
-            elif text == "/end":
-
-                MODE = "coming"
-
-                send_telegram(
-                    "⏹ Event Ended\n\nComing Soon Page Activated"
-                )
-
-            # 🔁 RESET
-            elif text == "/reset":
-
-                reset_data()
-
-                send_telegram(
-                    "⚠️ Karaoke Draw Reset"
-                )
-
-            # ⚙️ MAINTENANCE MODE
-            elif text == "/maintenance":
-
-                MODE = "maintenance"
-
-                send_telegram(
-                    "⚙️ Maintenance Mode Activated"
-                )
-    except Exception as e:
-
-        print(e)
-
-    return "ok"
+    app.run(debug=True)
