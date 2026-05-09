@@ -269,7 +269,7 @@ def openmic():
 
         # PAYMENT LINK
         return redirect(
-            "https://rzp.io/rzp/YOURPAYMENTLINK"
+            "https://rzp.io/rzp/gKUDnppW"
         )
 
     remaining = MAX_CHILDREN - total
