@@ -2,31 +2,9 @@ from flask import Flask, render_template, request, redirect
 import requests
 import random
 import os
+import sqlite3
 
 app = Flask(__name__)
-# =========================================
-# DATABASE
-# =========================================
-
-def init_db():
-
-    conn = sqlite3.connect("database.db")
-
-    cur = conn.cursor()
-
-    # OPENMIC TABLE
-    cur.execute(
-        '''
-        CREATE TABLE IF NOT EXISTS openmic (
-            id INTEGER PRIMARY KEY AUTOINCREMENT
-        )
-        '''
-    )
-
-    conn.commit()
-    conn.close()
-
-init_db()
 
 # =========================================
 # TELEGRAM CONFIG
@@ -51,6 +29,28 @@ MODE = "coming"
 # =========================================
 
 MAX_CHILDREN = 32
+
+# =========================================
+# DATABASE
+# =========================================
+
+def init_db():
+
+    conn = sqlite3.connect("database.db")
+
+    cur = conn.cursor()
+
+    # OPEN MIC TABLE
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS openmic (
+            id INTEGER PRIMARY KEY AUTOINCREMENT
+        )
+    """)
+
+    conn.commit()
+    conn.close()
+
+init_db()
 
 # =========================================
 # KARAOKE SETTINGS
@@ -107,8 +107,6 @@ def reset_data():
 
 def reset_openmic():
 
-    def reset_openmic():
-
     conn = sqlite3.connect("database.db")
 
     cur = conn.cursor()
@@ -116,9 +114,7 @@ def reset_openmic():
     cur.execute("DELETE FROM openmic")
 
     conn.commit()
-
     conn.close()
-        f.write("0")
 
 # =========================================
 # OPENMIC COUNT
@@ -139,15 +135,6 @@ def get_total_openmic_registrations():
     conn.close()
 
     return total
-
-    if not os.path.exists("openmic_count.txt"):
-
-        with open("openmic_count.txt", "w") as f:
-            f.write("0")
-
-    with open("openmic_count.txt", "r") as f:
-
-        return int(f.read())
 
 # =========================================
 # DRAW SYSTEM
@@ -170,7 +157,7 @@ def assign_slots(singer):
 
     for slot in available:
 
-        # prevent near slots
+        # Prevent close slots
         if any(abs(slot - s) <= 1 for s in selected):
             continue
 
@@ -257,7 +244,7 @@ def index():
         return render_template("live.html")
 
     # =====================================
-    # MAINTENANCE
+    # MAINTENANCE MODE
     # =====================================
 
     elif MODE == "maintenance":
@@ -265,7 +252,6 @@ def index():
         return render_template(
             "maintenance.html"
         )
-
 
 # =========================================
 # OPEN MIC PAGE
@@ -298,7 +284,6 @@ def openmic():
                 "Only children up to 15 years allowed"
             )
 
-
         # TELEGRAM MESSAGE
         send_telegram(
             f"🎉 OPEN MIC REGISTRATION\n\n"
@@ -311,7 +296,7 @@ def openmic():
             f"Venue: Evening Post, Kasturba Road, Rajkot"
         )
 
-        # PAYMENT LINK
+        # PAYMENT PAGE
         return redirect(
             "https://rzp.io/rzp/uUJzXQp"
         )
@@ -322,6 +307,10 @@ def openmic():
         "openmic.html",
         remaining=remaining
     )
+
+# =========================================
+# PAYMENT SUCCESS
+# =========================================
 
 @app.route("/success")
 def success():
@@ -335,7 +324,6 @@ def success():
     )
 
     conn.commit()
-
     conn.close()
 
     return render_template("success.html")
