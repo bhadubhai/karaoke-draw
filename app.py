@@ -251,10 +251,6 @@ def openmic():
                 "Only children up to 15 years allowed"
             )
 
-        # UPDATE COUNT
-        with open("openmic_count.txt", "w") as f:
-
-            f.write(str(total + 1))
 
         # TELEGRAM MESSAGE
         send_telegram(
@@ -282,6 +278,13 @@ def openmic():
 
 @app.route("/success")
 def success():
+
+    total = get_total_openmic_registrations()
+
+    # UPDATE ONLY AFTER PAYMENT
+    with open("openmic_count.txt", "w") as f:
+
+        f.write(str(total + 1))
 
     return render_template("success.html")
 
