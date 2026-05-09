@@ -1,61 +1,78 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Open Mic Registration</title>
+</head>
+<body>
 
-<style>
+<div class="container">
 
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
+<div class="badge">
+🎂 Organizer Birthday Special
+</div>
 
-body{
-    font-family:Arial,sans-serif;
-    background:linear-gradient(135deg,#020617,#0f172a,#111827);
-    color:white;
-    min-height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    padding:20px;
-}
+<h1>
+🎤 Kids Open Mic <span class="highlight">2026</span>
+</h1>
 
-.container{
-    width:100%;
-    max-width:650px;
+<div class="subtitle">
+Special Open Mic Event on <b>02/06/2026</b><br><br>
+📍 Venue: <b>Evening Post, Kasturba Road, Rajkot, Gujarat</b><br><br>
 
-    background:rgba(255,255,255,0.05);
+🎶 Singing • Dancing • Talent Show<br>
+👦👧 Only for children up to 15 years age
+</div>
 
-    border:1px solid rgba(255,255,255,0.08);
+<form method="POST">
 
-    backdrop-filter:blur(15px);
+<div class="input-box">
+<label>Child Name</label>
+<input type="text" name="name" required>
+</div>
 
-    border-radius:28px;
+<div class="input-box">
+<label>Age (Max 15)</label>
+<input type="number" name="age" max="15" required>
+</div>
 
-    padding:35px 25px;
+<div class="input-box">
+<label>Parent Name</label>
+<input type="text" name="parent" required>
+</div>
 
-    box-shadow:0 20px 50px rgba(0,0,0,0.4);
-}
+<div class="input-box">
+<label>Mobile Number</label>
+<input type="tel" name="mobile" required>
+</div>
 
-.badge{
-    display:inline-block;
+<div class="input-box">
+<label>Performance Type</label>
+<select name="performance" required>
+<option value="">Select</option>
+<option>Singing</option>
+<option>Dancing</option>
+<option>Poetry</option>
+<option>Comedy</option>
+<option>Other Talent</option>
+</select>
+</div>
 
-    padding:10px 18px;
+<button type="submit">
+💳 Proceed To Payment
+</button>
 
-    background:#ec4899;
+</form>
 
-    border-radius:50px;
+<div class="payment-note">
+💳 Registration Fee: ₹100 Only<br>
+⚡ Registration confirmed ONLY after successful payment.
+</div>
 
-    font-weight:bold;
+<div class="footer">
+Powered By
+<a href="https://bhadreshtech.site/" target="_blank">
+Bhadresh Tech
+</a>
+</div>
 
-    margin-bottom:25px;
-}
+</div>
 
-h1{
-    font-size:42px;
-
+</body>
 </html>
