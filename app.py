@@ -219,6 +219,7 @@ def index():
             "maintenance.html"
         )
 
+
 # =========================================
 # OPEN MIC PAGE
 # =========================================
@@ -278,6 +279,11 @@ def openmic():
         "openmic.html",
         remaining=remaining
     )
+
+@app.route("/success")
+def success():
+
+    return render_template("success.html")
 
 # =========================================
 # TELEGRAM WEBHOOK
