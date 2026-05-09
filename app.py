@@ -4,6 +4,29 @@ import random
 import os
 
 app = Flask(__name__)
+# =========================================
+# DATABASE
+# =========================================
+
+def init_db():
+
+    conn = sqlite3.connect("database.db")
+
+    cur = conn.cursor()
+
+    # OPENMIC TABLE
+    cur.execute(
+        '''
+        CREATE TABLE IF NOT EXISTS openmic (
+            id INTEGER PRIMARY KEY AUTOINCREMENT
+        )
+        '''
+    )
+
+    conn.commit()
+    conn.close()
+
+init_db()
 
 # =========================================
 # TELEGRAM CONFIG
@@ -84,7 +107,17 @@ def reset_data():
 
 def reset_openmic():
 
-    with open("openmic_count.txt", "w") as f:
+    def reset_openmic():
+
+    conn = sqlite3.connect("database.db")
+
+    cur = conn.cursor()
+
+    cur.execute("DELETE FROM openmic")
+
+    conn.commit()
+
+    conn.close()
         f.write("0")
 
 # =========================================
@@ -92,6 +125,20 @@ def reset_openmic():
 # =========================================
 
 def get_total_openmic_registrations():
+
+    conn = sqlite3.connect("database.db")
+
+    cur = conn.cursor()
+
+    cur.execute(
+        "SELECT COUNT(*) FROM openmic"
+    )
+
+    total = cur.fetchone()[0]
+
+    conn.close()
+
+    return total
 
     if not os.path.exists("openmic_count.txt"):
 
@@ -279,12 +326,17 @@ def openmic():
 @app.route("/success")
 def success():
 
-    total = get_total_openmic_registrations()
+    conn = sqlite3.connect("database.db")
 
-    # UPDATE ONLY AFTER PAYMENT
-    with open("openmic_count.txt", "w") as f:
+    cur = conn.cursor()
 
-        f.write(str(total + 1))
+    cur.execute(
+        "INSERT INTO openmic DEFAULT VALUES"
+    )
+
+    conn.commit()
+
+    conn.close()
 
     return render_template("success.html")
 
