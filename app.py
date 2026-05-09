@@ -236,15 +236,12 @@ def index():
 
         return render_template("maintenance.html")
 
-# 🤖 TELEGRAM CONTROL
 @app.route("/telegram", methods=["POST"])
 def telegram_webhook():
 
     global MODE
 
     data = request.json
-
-    print(data)
 
     try:
 
@@ -256,29 +253,72 @@ def telegram_webhook():
 
             chat_id = str(message["chat"]["id"])
 
-            # 🔐 ADMIN CHECK
+            # SECURITY
             if chat_id != str(CHAT_ID):
+
                 return "Unauthorized"
 
-            # 🎤 DRAW MODE
+            # 🎤 START DRAW
             if text == "/startdraw":
 
                 MODE = "draw"
 
                 send_telegram(
-                    "🎤 Karaoke Draw STARTED"
+                    "🎤 Karaoke Draw Started"
                 )
 
-            # RESET OPEN MIC
-elif text == "/resetopenmic":
+            # 🔴 LIVE MODE
+            elif text == "/live":
 
-    with open("openmic_count.txt", "w") as f:
-        f.write("0")
+                MODE = "live"
 
-    send_telegram(
-        "🎤 Open Mic Reset Successful\\n\\n32 Slots Reopened ✅"
-    )
+                send_telegram(
+                    "🔴 LIVE MODE ACTIVATED"
+                )
 
+            # ⏹ END EVENT
+            elif text == "/end":
+
+                MODE = "coming"
+
+                send_telegram(
+                    "⏹ Coming Soon Mode Activated"
+                )
+
+            # ⚙️ MAINTENANCE
+            elif text == "/maintenance":
+
+                MODE = "maintenance"
+
+                send_telegram(
+                    "⚙️ Maintenance Mode Activated"
+                )
+
+            # 🔁 RESET DRAW
+            elif text == "/reset":
+
+                reset_data()
+
+                send_telegram(
+                    "🔁 Karaoke Draw Reset"
+                )
+
+            # 🎤 RESET OPEN MIC
+            elif text == "/resetopenmic":
+
+                with open("openmic_count.txt", "w") as f:
+                    f.write("0")
+
+                send_telegram(
+                    "🎤 Open Mic Reset Successful\\n\\n32 Slots Reopened ✅"
+                )
+
+    except Exception as e:
+
+        print("ERROR:", e)
+
+    return "ok"
+    
             MAX_CHILDREN = 32
 
 @app.route("/openmic", methods=["GET", "POST"])
