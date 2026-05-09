@@ -269,6 +269,15 @@ def telegram_webhook():
                     "🎤 Karaoke Draw STARTED"
                 )
 
+            # RESET OPEN MIC
+elif text == "/resetopenmic":
+
+    with open("openmic_count.txt", "w") as f:
+        f.write("0")
+
+    send_telegram(
+        "🎤 Open Mic Reset Successful\\n\\n32 Slots Reopened ✅"
+    )
 
             MAX_CHILDREN = 32
 
