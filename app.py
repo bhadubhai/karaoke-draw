@@ -269,6 +269,69 @@ def telegram_webhook():
                     "🎤 Karaoke Draw STARTED"
                 )
 
+
+            MAX_CHILDREN = 32
+
+@app.route("/openmic", methods=["GET", "POST"])
+def openmic():
+
+    # CREATE FILE IF NOT EXISTS
+    if not os.path.exists("openmic_count.txt"):
+
+        with open("openmic_count.txt", "w") as f:
+            f.write("0")
+
+    # READ COUNT
+    with open("openmic_count.txt", "r") as f:
+
+        total = int(f.read())
+
+    # REGISTRATION CLOSED
+    if total >= MAX_CHILDREN:
+
+        return "🎤 Open Mic Registrations Closed"
+
+    if request.method == "POST":
+
+        name = request.form.get("name")
+        age = request.form.get("age")
+        parent = request.form.get("parent")
+        mobile = request.form.get("mobile")
+        performance = request.form.get("performance")
+
+        # AGE CHECK
+        if int(age) > 15:
+
+            return "Only children up to 15 years allowed"
+
+        # UPDATE COUNT
+        with open("openmic_count.txt", "w") as f:
+
+            f.write(str(total + 1))
+
+        # TELEGRAM MESSAGE
+        send_telegram(
+            f"🎉 OPEN MIC REGISTRATION\\n\\n"
+            f"Child: {name}\\n"
+            f"Age: {age}\\n"
+            f"Parent: {parent}\\n"
+            f"Mobile: {mobile}\\n"
+            f"Performance: {performance}\\n"
+            f"Payment: ₹100 Pending\\n\\n"
+            f"Venue: Evening Post, Kasturba Road, Rajkot"
+        )
+
+        # PAYMENT LINK
+        return redirect(
+            "https://rzp.io/rzp/YOURPAYMENTLINK"
+        )
+
+    remaining = MAX_CHILDREN - total
+
+    return render_template(
+        "openmic.html",
+        remaining=remaining
+    )
             # 🔴 LIVE MODE
             elif text == "/live":
 
