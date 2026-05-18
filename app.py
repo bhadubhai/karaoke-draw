@@ -19,6 +19,7 @@ CHAT_ID = os.getenv("CHAT_ID")
 
 MODE = "coming"
 
+# Modes:
 # coming
 # draw
 # live
@@ -29,6 +30,27 @@ MODE = "coming"
 # =========================================
 
 MAX_CHILDREN = 32
+
+# =========================================
+# KARAOKE SETTINGS
+# =========================================
+
+SINGERS = {
+
+    "chetanbhai pandya": 6,
+    "chandreshbhai fichadiya": 6,
+    "anilbhai mavadiya": 3,
+    "jiteshbhai jivrajani": 3,
+    "kamleshbhai dave": 2,
+    "pareshbhai khakhkhar": 2,
+    "narendrabhai khakhkhar": 1,
+    "jaysukhbhai parekh": 1,
+    "rockstar": 3,
+    "jagdishbhai kariya": 2,
+    "ashokbhai dhamecha": 1,
+}
+
+TOTAL_SLOTS = 31
 
 # =========================================
 # DATABASE
@@ -47,33 +69,18 @@ def init_db():
         )
     """)
 
+    # KARAOKE DRAW TABLE
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS karaoke_draw (
+            singer TEXT UNIQUE,
+            slots TEXT
+        )
+    """)
+
     conn.commit()
     conn.close()
 
 init_db()
-
-# =========================================
-# KARAOKE SETTINGS
-# =========================================
-
-SINGERS = {
-    "chetanbhai pandya": 6,
-    "chandreshbhai fichadiya": 6,
-    "anilbhai mavadiya": 3,
-    "jiteshbhai jivrajani": 3,
-    "kamleshbhai dave": 2,
-    "pareshbhai khakhkhar": 2,
-    "narendrabhai khakhkhar": 1,
-    "jaysukhbhai parekh": 1,
-    "rockstar": 3,
-    "jagdishbhai kariya": 2,
-    "ashokbhai dhamecha": 1,
-}
-
-TOTAL_SLOTS = 31
-
-used_slots = []
-draw_data = []
 
 # =========================================
 # TELEGRAM FUNCTION
@@ -97,14 +104,6 @@ def send_telegram(message):
 # RESET FUNCTIONS
 # =========================================
 
-def reset_data():
-
-    global used_slots
-    global draw_data
-
-    used_slots = []
-    draw_data = []
-
 def reset_openmic():
 
     conn = sqlite3.connect("database.db")
@@ -112,6 +111,19 @@ def reset_openmic():
     cur = conn.cursor()
 
     cur.execute("DELETE FROM openmic")
+
+    conn.commit()
+    conn.close()
+
+def reset_draw():
+
+    conn = sqlite3.connect("database.db")
+
+    cur = conn.cursor()
+
+    cur.execute(
+        "DELETE FROM karaoke_draw"
+    )
 
     conn.commit()
     conn.close()
@@ -137,26 +149,78 @@ def get_total_openmic_registrations():
     return total
 
 # =========================================
+# GET DRAW DATA
+# =========================================
+
+def get_draw_data():
+
+    conn = sqlite3.connect("database.db")
+
+    cur = conn.cursor()
+
+    cur.execute(
+        "SELECT singer, slots FROM karaoke_draw"
+    )
+
+    rows = cur.fetchall()
+
+    conn.close()
+
+    data = []
+
+    for row in rows:
+
+        data.append({
+
+            "singer": row[0],
+
+            "slots": list(
+                map(int, row[1].split(","))
+            )
+        })
+
+    return data
+
+# =========================================
 # DRAW SYSTEM
 # =========================================
 
 def assign_slots(singer):
 
-    global used_slots
-
     total_songs = SINGERS[singer]
 
-    # Rule:
-    # Slot 1 is reserved
-    # Single-song singers get slot after 11
+    draw_data = get_draw_data()
 
+    used_slots = []
+
+    # GET USED SLOTS
+    for item in draw_data:
+
+        used_slots.extend(
+            item["slots"]
+        )
+
+    # SLOT 1 RESERVED
     available = [
-        x for x in range(1, TOTAL_SLOTS + 1)
-        if x not in used_slots and x != 1
+
+        x for x in range(
+            1,
+            TOTAL_SLOTS + 1
+        )
+
+        if x not in used_slots
+        and x != 1
     ]
 
+    # SINGLE SONG RULE
     if total_songs == 1:
-        available = [x for x in available if x > 11]
+
+        available = [
+
+            x for x in available
+
+            if x > 11
+        ]
 
     random.shuffle(available)
 
@@ -164,20 +228,47 @@ def assign_slots(singer):
 
     for slot in available:
 
-        # Prevent nearby slots
-        if any(abs(slot - s) <= 1 for s in selected):
+        # PREVENT CLOSE SLOTS
+        if any(
+
+            abs(slot - s) <= 1
+
+            for s in selected
+        ):
+
             continue
 
         selected.append(slot)
 
         if len(selected) == total_songs:
+
             break
 
     if len(selected) != total_songs:
 
         return None, "Not enough slots"
 
-    used_slots.extend(selected)
+    # SAVE IN DATABASE
+    conn = sqlite3.connect("database.db")
+
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        INSERT INTO karaoke_draw
+        (singer, slots)
+        VALUES (?, ?)
+        """,
+        (
+            singer,
+            ",".join(
+                map(str, selected)
+            )
+        )
+    )
+
+    conn.commit()
+    conn.close()
 
     return sorted(selected), None
 
@@ -189,17 +280,26 @@ def assign_slots(singer):
 def index():
 
     global MODE
-    global draw_data
 
+    # =====================================
     # COMING SOON
+    # =====================================
+
     if MODE == "coming":
 
-        return render_template("index.html")
+        return render_template(
+            "index.html"
+        )
 
+    # =====================================
     # DRAW MODE
+    # =====================================
+
     elif MODE == "draw":
 
         result = None
+
+        draw_data = get_draw_data()
 
         if request.method == "POST":
 
@@ -207,7 +307,6 @@ def index():
                 "singer"
             ).strip().lower()
 
-            # CHECK IF ALREADY DRAWN
             already_drawn = False
 
             for item in draw_data:
@@ -228,39 +327,50 @@ def index():
                 if slots:
 
                     result = {
+
                         "singer": singer,
                         "slots": slots
                     }
 
-                    draw_data.append(result)
-
-                    # SEND TELEGRAM
                     send_telegram(
                         f"🎤 KARAOKE DRAW\n\n"
                         f"Singer: {singer.title()}\n"
                         f"Slots: {', '.join(map(str, slots))}"
                     )
 
+            draw_data = get_draw_data()
+
         return render_template(
+
             "draw.html",
+
             singers=SINGERS.keys(),
+
             result=result,
+
             draw_data=draw_data
         )
 
+    # =====================================
     # LIVE MODE
+    # =====================================
+
     elif MODE == "live":
 
         return render_template(
             "live.html"
         )
 
+    # =====================================
     # MAINTENANCE MODE
+    # =====================================
+
     elif MODE == "maintenance":
 
         return render_template(
             "maintenance.html"
         )
+
 # =========================================
 # OPEN MIC PAGE
 # =========================================
@@ -294,13 +404,21 @@ def openmic():
 
         # TELEGRAM MESSAGE
         send_telegram(
+
             f"🎉 OPEN MIC REGISTRATION\n\n"
+
             f"Child: {name}\n"
+
             f"Age: {age}\n"
+
             f"Parent: {parent}\n"
+
             f"Mobile: {mobile}\n"
+
             f"Performance: {performance}\n"
+
             f"Payment: ₹100 Pending\n\n"
+
             f"Venue: Evening Post, Kasturba Road, Rajkot"
         )
 
@@ -334,7 +452,9 @@ def success():
     conn.commit()
     conn.close()
 
-    return render_template("success.html")
+    return render_template(
+        "success.html"
+    )
 
 # =========================================
 # TELEGRAM WEBHOOK
@@ -368,10 +488,7 @@ def telegram_webhook():
 
                 return "Unauthorized"
 
-            # =================================
             # START DRAW
-            # =================================
-
             if text == "/startdraw":
 
                 MODE = "draw"
@@ -380,10 +497,7 @@ def telegram_webhook():
                     "🎤 Karaoke Draw Started"
                 )
 
-            # =================================
             # LIVE MODE
-            # =================================
-
             elif text == "/live":
 
                 MODE = "live"
@@ -392,10 +506,7 @@ def telegram_webhook():
                     "🔴 LIVE MODE ACTIVATED"
                 )
 
-            # =================================
             # COMING SOON
-            # =================================
-
             elif text == "/end":
 
                 MODE = "coming"
@@ -404,10 +515,7 @@ def telegram_webhook():
                     "⏹ Coming Soon Mode Activated"
                 )
 
-            # =================================
             # MAINTENANCE
-            # =================================
-
             elif text == "/maintenance":
 
                 MODE = "maintenance"
@@ -416,22 +524,16 @@ def telegram_webhook():
                     "⚙️ Maintenance Mode Activated"
                 )
 
-            # =================================
             # RESET DRAW
-            # =================================
-
             elif text == "/reset":
 
-                reset_data()
+                reset_draw()
 
                 send_telegram(
                     "🔁 Karaoke Draw Reset"
                 )
 
-            # =================================
             # RESET OPENMIC
-            # =================================
-
             elif text == "/resetopenmic":
 
                 reset_openmic()
