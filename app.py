@@ -191,39 +191,39 @@ def index():
     global MODE
     global draw_data
 
-    # =====================================
     # COMING SOON
-    # =====================================
-
     if MODE == "coming":
 
         return render_template("index.html")
 
-    # =====================================
     # DRAW MODE
-    # =====================================
-
     elif MODE == "draw":
 
         result = None
 
         if request.method == "POST":
 
-            singer = (
-                request.form.get("singer")
-                .strip()
-                .lower()
-            )
+            singer = request.form.get(
+                "singer"
+            ).strip().lower()
 
-            # Prevent redraw
-            already_drawn = any(
-                d["singer"] == singer
-                for d in draw_data
-            )
+            # CHECK IF ALREADY DRAWN
+            already_drawn = False
 
+            for item in draw_data:
+
+                if item["singer"] == singer:
+
+                    already_drawn = True
+                    result = item
+                    break
+
+            # NEW DRAW
             if not already_drawn:
 
-                slots, error = assign_slots(singer)
+                slots, error = assign_slots(
+                    singer
+                )
 
                 if slots:
 
@@ -234,32 +234,28 @@ def index():
 
                     draw_data.append(result)
 
-                    # TELEGRAM MESSAGE
+                    # SEND TELEGRAM
                     send_telegram(
                         f"🎤 KARAOKE DRAW\n\n"
                         f"Singer: {singer.title()}\n"
                         f"Slots: {', '.join(map(str, slots))}"
                     )
 
-      return render_template(
-    "draw.html",
-    singers=SINGERS.keys(),
-    result=result,
-    draw_data=draw_data
-)
+        return render_template(
+            "draw.html",
+            singers=SINGERS.keys(),
+            result=result,
+            draw_data=draw_data
+        )
 
-    # =====================================
     # LIVE MODE
-    # =====================================
-
     elif MODE == "live":
 
-        return render_template("live.html")
+        return render_template(
+            "live.html"
+        )
 
-    # =====================================
     # MAINTENANCE MODE
-    # =====================================
-
     elif MODE == "maintenance":
 
         return render_template(
