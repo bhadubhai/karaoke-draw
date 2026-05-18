@@ -7,6 +7,19 @@ import sqlite3
 app = Flask(__name__)
 
 # =========================================
+# DATABASE PATH
+# =========================================
+
+BASE_DIR = os.path.dirname(
+    os.path.abspath(__file__)
+)
+
+DB_PATH = os.path.join(
+    BASE_DIR,
+    "database.db"
+)
+
+# =========================================
 # TELEGRAM CONFIG
 # =========================================
 
@@ -53,23 +66,23 @@ SINGERS = {
 TOTAL_SLOTS = 31
 
 # =========================================
-# DATABASE
+# DATABASE INIT
 # =========================================
 
 def init_db():
 
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect(DB_PATH)
 
     cur = conn.cursor()
 
-    # OPEN MIC TABLE
+    # OPENMIC TABLE
     cur.execute("""
         CREATE TABLE IF NOT EXISTS openmic (
             id INTEGER PRIMARY KEY AUTOINCREMENT
         )
     """)
 
-    # KARAOKE DRAW TABLE
+    # DRAW TABLE
     cur.execute("""
         CREATE TABLE IF NOT EXISTS karaoke_draw (
             singer TEXT UNIQUE,
@@ -88,17 +101,27 @@ init_db()
 
 def send_telegram(message):
 
-    url = (
-        f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-    )
+    try:
 
-    requests.post(
-        url,
-        data={
-            "chat_id": CHAT_ID,
-            "text": message
-        }
-    )
+        url = (
+            f"https://api.telegram.org/"
+            f"bot{BOT_TOKEN}/sendMessage"
+        )
+
+        requests.post(
+
+            url,
+
+            data={
+
+                "chat_id": CHAT_ID,
+                "text": message
+            }
+        )
+
+    except Exception as e:
+
+        print("Telegram Error:", e)
 
 # =========================================
 # RESET FUNCTIONS
@@ -106,18 +129,20 @@ def send_telegram(message):
 
 def reset_openmic():
 
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect(DB_PATH)
 
     cur = conn.cursor()
 
-    cur.execute("DELETE FROM openmic")
+    cur.execute(
+        "DELETE FROM openmic"
+    )
 
     conn.commit()
     conn.close()
 
 def reset_draw():
 
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect(DB_PATH)
 
     cur = conn.cursor()
 
@@ -134,7 +159,7 @@ def reset_draw():
 
 def get_total_openmic_registrations():
 
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect(DB_PATH)
 
     cur = conn.cursor()
 
@@ -154,12 +179,16 @@ def get_total_openmic_registrations():
 
 def get_draw_data():
 
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect(DB_PATH)
 
     cur = conn.cursor()
 
     cur.execute(
-        "SELECT singer, slots FROM karaoke_draw"
+        """
+        SELECT singer, slots
+        FROM karaoke_draw
+        ORDER BY rowid ASC
+        """
     )
 
     rows = cur.fetchall()
@@ -168,15 +197,20 @@ def get_draw_data():
 
     data = []
 
-    for row in rows:
+    for singer, slots in rows:
 
         data.append({
 
-            "singer": row[0],
+            "singer": singer,
 
-            "slots": list(
-                map(int, row[1].split(","))
-            )
+            "slots": [
+
+                int(x)
+
+                for x in slots.split(",")
+
+                if x.strip()
+            ]
         })
 
     return data
@@ -191,16 +225,16 @@ def assign_slots(singer):
 
     draw_data = get_draw_data()
 
-    used_slots = []
+    used_slots = set()
 
-    # GET USED SLOTS
+    # USED SLOTS
     for item in draw_data:
 
-        used_slots.extend(
-            item["slots"]
-        )
+        for slot in item["slots"]:
 
-    # SLOT 1 RESERVED
+            used_slots.add(slot)
+
+    # AVAILABLE SLOTS
     available = [
 
         x for x in range(
@@ -228,28 +262,48 @@ def assign_slots(singer):
 
     for slot in available:
 
-        # PREVENT CLOSE SLOTS
-        if any(
+        invalid = False
 
-            abs(slot - s) <= 1
+        for s in selected:
 
-            for s in selected
-        ):
+            if abs(slot - s) <= 1:
 
+                invalid = True
+                break
+
+        if invalid:
             continue
 
         selected.append(slot)
 
         if len(selected) == total_songs:
-
             break
+
+    # FALLBACK
+    if len(selected) < total_songs:
+
+        remaining = [
+
+            x for x in available
+
+            if x not in selected
+        ]
+
+        for slot in remaining:
+
+            selected.append(slot)
+
+            if len(selected) == total_songs:
+                break
 
     if len(selected) != total_songs:
 
         return None, "Not enough slots"
 
-    # SAVE IN DATABASE
-    conn = sqlite3.connect("database.db")
+    selected = sorted(selected)
+
+    # SAVE TO DATABASE
+    conn = sqlite3.connect(DB_PATH)
 
     cur = conn.cursor()
 
@@ -270,7 +324,7 @@ def assign_slots(singer):
     conn.commit()
     conn.close()
 
-    return sorted(selected), None
+    return selected, None
 
 # =========================================
 # MAIN WEBSITE
@@ -297,48 +351,63 @@ def index():
 
     elif MODE == "draw":
 
-        result = None
-
         draw_data = get_draw_data()
 
-        if request.method == "POST":
+        result = None
 
-            singer = request.form.get(
-                "singer"
-            ).strip().lower()
+        # HANDLE DRAW
+        if (
+            request.method == "POST"
+            and request.form.get("singer")
+        ):
 
-            already_drawn = False
+            singer = (
+                request.form.get("singer")
+                .strip()
+                .lower()
+            )
 
+            # ALREADY DRAWN
             for item in draw_data:
 
                 if item["singer"] == singer:
 
-                    already_drawn = True
-                    result = item
-                    break
-
-            # NEW DRAW
-            if not already_drawn:
-
-                slots, error = assign_slots(
-                    singer
-                )
-
-                if slots:
-
-                    result = {
-
-                        "singer": singer,
-                        "slots": slots
-                    }
-
-                    send_telegram(
-                        f"🎤 KARAOKE DRAW\n\n"
-                        f"Singer: {singer.title()}\n"
-                        f"Slots: {', '.join(map(str, slots))}"
+                    return redirect(
+                        "/?already=1"
                     )
 
+            # NEW DRAW
+            slots, error = assign_slots(
+                singer
+            )
+
+            if slots:
+
+                send_telegram(
+                    f"🎤 KARAOKE DRAW\n\n"
+                    f"Singer: {singer.title()}\n"
+                    f"Slots: {', '.join(map(str, slots))}"
+                )
+
+                return redirect(
+                    f"/?singer={singer}"
+                )
+
+        # SHOW RESULT
+        singer_name = request.args.get(
+            "singer"
+        )
+
+        if singer_name:
+
             draw_data = get_draw_data()
+
+            for item in draw_data:
+
+                if item["singer"] == singer_name:
+
+                    result = item
+                    break
 
         return render_template(
 
@@ -348,7 +417,7 @@ def index():
 
             result=result,
 
-            draw_data=draw_data
+            draw_data=get_draw_data()
         )
 
     # =====================================
@@ -372,7 +441,7 @@ def index():
         )
 
 # =========================================
-# OPEN MIC PAGE
+# OPENMIC PAGE
 # =========================================
 
 @app.route("/openmic", methods=["GET", "POST"])
@@ -380,7 +449,7 @@ def openmic():
 
     total = get_total_openmic_registrations()
 
-    # REGISTRATION CLOSED
+    # CLOSED
     if total >= MAX_CHILDREN:
 
         return (
@@ -395,14 +464,14 @@ def openmic():
         mobile = request.form.get("mobile")
         performance = request.form.get("performance")
 
-        # AGE VALIDATION
+        # AGE CHECK
         if int(age) > 15:
 
             return (
                 "Only children up to 15 years allowed"
             )
 
-        # TELEGRAM MESSAGE
+        # TELEGRAM
         send_telegram(
 
             f"🎉 OPEN MIC REGISTRATION\n\n"
@@ -419,10 +488,10 @@ def openmic():
 
             f"Payment: ₹100 Pending\n\n"
 
-            f"Venue: Evening Post, Kasturba Road, Rajkot"
+            f"Venue: Evening Post, Rajkot"
         )
 
-        # PAYMENT PAGE
+        # PAYMENT
         return redirect(
             "https://rzp.io/rzp/uUJzXQp"
         )
@@ -441,7 +510,7 @@ def openmic():
 @app.route("/success")
 def success():
 
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect(DB_PATH)
 
     cur = conn.cursor()
 
@@ -455,6 +524,20 @@ def success():
     return render_template(
         "success.html"
     )
+
+# =========================================
+# DEBUG ROUTE
+# =========================================
+
+@app.route("/debug")
+def debug():
+
+    return {
+
+        "mode": MODE,
+
+        "draw_data": get_draw_data()
+    }
 
 # =========================================
 # TELEGRAM WEBHOOK
@@ -545,7 +628,7 @@ def telegram_webhook():
 
     except Exception as e:
 
-        print("ERROR:", e)
+        print("Webhook Error:", e)
 
     return "ok"
 
