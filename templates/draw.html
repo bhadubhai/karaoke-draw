@@ -10,7 +10,7 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Live Karaoke Draw</title>
+    <title>Karaoke Slot Draw</title>
 
     <link
         href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
@@ -33,35 +33,46 @@
                 linear-gradient(
                     135deg,
                     #020617,
-                    #0f172a,
-                    #111827
+                    #111827,
+                    #1e293b
                 );
-
-            color:white;
 
             min-height:100vh;
 
-            overflow-x:hidden;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+
+            padding:20px;
+
+            color:white;
         }
 
-        .container{
+        .card{
 
-            max-width:1000px;
-            margin:auto;
+            width:100%;
+            max-width:550px;
 
-            padding:40px 20px;
+            background:
+                rgba(255,255,255,0.05);
+
+            border:
+                1px solid rgba(255,255,255,0.08);
+
+            backdrop-filter:blur(16px);
+
+            border-radius:30px;
+
+            padding:40px;
         }
 
-        .title{
+        h1{
 
             text-align:center;
 
-            margin-bottom:60px;
-        }
+            font-size:38px;
 
-        .title h1{
-
-            font-size:56px;
+            margin-bottom:10px;
 
             background:
                 linear-gradient(
@@ -74,58 +85,53 @@
             -webkit-text-fill-color:transparent;
         }
 
-        .title p{
-
-            color:#94a3b8;
-
-            margin-top:10px;
-        }
-
-        .draw-box{
-
-            background:
-                rgba(255,255,255,0.05);
-
-            border:
-                1px solid rgba(255,255,255,0.08);
-
-            border-radius:30px;
-
-            padding:50px;
+        .subtitle{
 
             text-align:center;
 
-            backdrop-filter:blur(14px);
+            color:#94a3b8;
 
-            box-shadow:
-                0 20px 50px rgba(0,0,0,0.4);
+            margin-bottom:35px;
         }
 
-        .singer{
+        select{
 
-            font-size:40px;
-            font-weight:700;
+            width:100%;
 
-            margin-bottom:40px;
+            height:60px;
 
-            text-transform:capitalize;
+            border:none;
+
+            outline:none;
+
+            border-radius:18px;
+
+            padding:0 20px;
+
+            font-size:18px;
+
+            background:#0f172a;
+
+            color:white;
+
+            margin-bottom:25px;
         }
 
-        .slot{
+        button{
 
-            width:140px;
-            height:140px;
+            width:100%;
 
-            margin:auto;
+            height:60px;
 
-            border-radius:30px;
+            border:none;
 
-            display:flex;
-            align-items:center;
-            justify-content:center;
+            border-radius:18px;
 
-            font-size:58px;
-            font-weight:700;
+            font-size:18px;
+
+            font-weight:600;
+
+            cursor:pointer;
 
             background:
                 linear-gradient(
@@ -134,82 +140,63 @@
                     #9333ea
                 );
 
-            box-shadow:
-                0 20px 40px rgba(147,51,234,0.4);
+            color:white;
 
-            animation:
-                pulse 1s infinite;
+            transition:0.3s;
         }
 
-        @keyframes pulse{
+        button:hover{
 
-            0%{
-                transform:scale(1);
-            }
-
-            50%{
-                transform:scale(1.08);
-            }
-
-            100%{
-                transform:scale(1);
-            }
+            transform:translateY(-3px);
         }
 
-        .done{
+        .result{
 
-            margin-top:50px;
+            margin-top:35px;
 
-            display:grid;
-
-            grid-template-columns:
-                repeat(auto-fit,minmax(260px,1fr));
-
-            gap:20px;
+            text-align:center;
         }
 
-        .done-card{
-
-            background:
-                rgba(255,255,255,0.05);
-
-            border:
-                1px solid rgba(255,255,255,0.08);
-
-            border-radius:20px;
-
-            padding:20px;
-        }
-
-        .done-name{
-
-            font-size:20px;
-            margin-bottom:12px;
-
-            text-transform:capitalize;
-        }
-
-        .done-slots{
+        .slot-box{
 
             display:flex;
-            gap:10px;
+
+            justify-content:center;
+
+            gap:15px;
+
             flex-wrap:wrap;
+
+            margin-top:20px;
         }
 
-        .mini-slot{
+        .slot{
 
-            width:42px;
-            height:42px;
+            width:70px;
+            height:70px;
 
-            border-radius:12px;
+            border-radius:20px;
 
             display:flex;
             align-items:center;
             justify-content:center;
 
-            background:#8b5cf6;
-
+            font-size:24px;
             font-weight:700;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #38bdf8,
+                    #8b5cf6
+                );
+        }
+
+        .success{
+
+            color:#4ade80;
+
+            margin-top:15px;
         }
 
     </style>
@@ -218,181 +205,67 @@
 
 <body>
 
-    <div class="container">
+    <div class="card">
 
-        <div class="title">
+        <h1>🎤 Karaoke Draw</h1>
 
-            <h1>🎤 Live Karaoke Draw</h1>
-
-            <p>
-                Official Random Slot Selection
-            </p>
-
+        <div class="subtitle">
+            Select your name and draw your slot
         </div>
 
-        <div class="draw-box">
+        <form method="POST">
 
-            <div
-                class="singer"
-                id="singer"
-            >
-                Preparing Draw...
+            <select name="singer" required>
+
+                <option value="">
+                    Select Singer
+                </option>
+
+                {% for singer in singers %}
+
+                    <option value="{{ singer }}">
+                        {{ singer.title() }}
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+            <button type="submit">
+                🎲 Draw My Slot
+            </button>
+
+        </form>
+
+        {% if result %}
+
+            <div class="result">
+
+                <h2>
+                    {{ result.singer.title() }}
+                </h2>
+
+                <div class="slot-box">
+
+                    {% for slot in result.slots %}
+
+                        <div class="slot">
+                            {{ slot }}
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+                <div class="success">
+                    Slot Assigned Successfully ✅
+                </div>
+
             </div>
 
-            <div
-                class="slot"
-                id="slot"
-            >
-                🎵
-            </div>
-
-        </div>
-
-        <div
-            class="done"
-            id="done"
-        ></div>
+        {% endif %}
 
     </div>
-
-    <script>
-
-        const drawData = {{ draw_data | tojson }};
-
-        let singerIndex = 0;
-
-        let slotIndex = 0;
-
-        let currentSlots = [];
-
-        let collected = [];
-
-        function nextDraw(){
-
-            if(singerIndex >= drawData.length){
-
-                document.getElementById(
-                    "singer"
-                ).innerHTML = "✅ Draw Completed";
-
-                document.getElementById(
-                    "slot"
-                ).innerHTML = "🎉";
-
-                return;
-            }
-
-            const singerData =
-                drawData[singerIndex];
-
-            document.getElementById(
-                "singer"
-            ).innerHTML =
-                singerData.singer;
-
-            currentSlots =
-                singerData.slots;
-
-            revealSlot();
-        }
-
-        function revealSlot(){
-
-            if(slotIndex >= currentSlots.length){
-
-                collected.push({
-                    singer:
-                        drawData[singerIndex].singer,
-                    slots:
-                        currentSlots
-                });
-
-                renderCompleted();
-
-                singerIndex++;
-
-                slotIndex = 0;
-
-                setTimeout(
-                    nextDraw,
-                    1500
-                );
-
-                return;
-            }
-
-            let counter = 0;
-
-            const animation =
-                setInterval(()=>{
-
-                document.getElementById(
-                    "slot"
-                ).innerHTML =
-                    Math.floor(
-                        Math.random()*31
-                    ) + 1;
-
-                counter++;
-
-                if(counter > 20){
-
-                    clearInterval(animation);
-
-                    document.getElementById(
-                        "slot"
-                    ).innerHTML =
-                        currentSlots[slotIndex];
-
-                    slotIndex++;
-
-                    setTimeout(
-                        revealSlot,
-                        1200
-                    );
-                }
-
-            },80);
-        }
-
-        function renderCompleted(){
-
-            const done =
-                document.getElementById(
-                    "done"
-                );
-
-            done.innerHTML = "";
-
-            collected.forEach(item=>{
-
-                done.innerHTML += `
-                    <div class="done-card">
-
-                        <div class="done-name">
-                            ${item.singer}
-                        </div>
-
-                        <div class="done-slots">
-
-                            ${item.slots.map(
-                                s=>`
-                                    <div class="mini-slot">
-                                        ${s}
-                                    </div>
-                                `
-                            ).join("")}
-
-                        </div>
-
-                    </div>
-                `;
-            });
-        }
-
-        nextDraw();
-
-    </script>
 
 </body>
 
