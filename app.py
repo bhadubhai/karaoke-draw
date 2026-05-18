@@ -189,6 +189,7 @@ def assign_slots(singer):
 def index():
 
     global MODE
+    global draw_data
 
     # =====================================
     # COMING SOON
@@ -204,7 +205,28 @@ def index():
 
     elif MODE == "draw":
 
-        return render_template("draw.html")
+        # Generate draw only once
+        if not draw_data:
+
+            singers = list(SINGERS.keys())
+
+            random.shuffle(singers)
+
+            for singer in singers:
+
+                slots, error = assign_slots(singer)
+
+                if slots:
+
+                    draw_data.append({
+                        "singer": singer,
+                        "slots": slots
+                    })
+
+        return render_template(
+            "draw.html",
+            draw_data=draw_data
+        )
 
     # =====================================
     # LIVE MODE
