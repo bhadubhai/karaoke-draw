@@ -10,7 +10,7 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Karaoke Slot Draw</title>
+    <title>Karaoke Draw</title>
 
     <link
         href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
@@ -37,21 +37,38 @@
                     #1e293b
                 );
 
+            color:white;
+
             min-height:100vh;
 
-            display:flex;
-            align-items:center;
-            justify-content:center;
+            padding:30px;
+        }
 
-            padding:20px;
+        .container{
 
-            color:white;
+            max-width:1200px;
+            margin:auto;
+        }
+
+        .top{
+
+            display:grid;
+
+            grid-template-columns:
+                420px 1fr;
+
+            gap:30px;
+        }
+
+        @media(max-width:900px){
+
+            .top{
+
+                grid-template-columns:1fr;
+            }
         }
 
         .card{
-
-            width:100%;
-            max-width:550px;
 
             background:
                 rgba(255,255,255,0.05);
@@ -59,18 +76,16 @@
             border:
                 1px solid rgba(255,255,255,0.08);
 
-            backdrop-filter:blur(16px);
-
             border-radius:30px;
 
-            padding:40px;
+            padding:35px;
+
+            backdrop-filter:blur(14px);
         }
 
         h1{
 
-            text-align:center;
-
-            font-size:38px;
+            font-size:42px;
 
             margin-bottom:10px;
 
@@ -87,11 +102,9 @@
 
         .subtitle{
 
-            text-align:center;
-
             color:#94a3b8;
 
-            margin-bottom:35px;
+            margin-bottom:30px;
         }
 
         select{
@@ -101,8 +114,6 @@
             height:60px;
 
             border:none;
-
-            outline:none;
 
             border-radius:18px;
 
@@ -114,7 +125,9 @@
 
             color:white;
 
-            margin-bottom:25px;
+            margin-bottom:20px;
+
+            outline:none;
         }
 
         button{
@@ -152,20 +165,20 @@
 
         .result{
 
-            margin-top:35px;
+            margin-top:30px;
 
             text-align:center;
         }
 
-        .slot-box{
+        .slot-container{
 
             display:flex;
 
             justify-content:center;
 
-            gap:15px;
-
             flex-wrap:wrap;
+
+            gap:14px;
 
             margin-top:20px;
         }
@@ -192,11 +205,64 @@
                 );
         }
 
-        .success{
+        .public-title{
 
-            color:#4ade80;
+            font-size:28px;
 
-            margin-top:15px;
+            margin-bottom:25px;
+        }
+
+        .public-list{
+
+            display:grid;
+
+            gap:18px;
+        }
+
+        .public-card{
+
+            background:
+                rgba(255,255,255,0.04);
+
+            border:
+                1px solid rgba(255,255,255,0.06);
+
+            border-radius:20px;
+
+            padding:20px;
+        }
+
+        .public-name{
+
+            font-size:20px;
+            font-weight:600;
+
+            margin-bottom:15px;
+
+            text-transform:capitalize;
+        }
+
+        .public-slots{
+
+            display:flex;
+            flex-wrap:wrap;
+            gap:10px;
+        }
+
+        .mini-slot{
+
+            width:48px;
+            height:48px;
+
+            border-radius:14px;
+
+            display:flex;
+            align-items:center;
+            justify-content:center;
+
+            font-weight:700;
+
+            background:#7c3aed;
         }
 
     </style>
@@ -205,65 +271,112 @@
 
 <body>
 
-    <div class="card">
+    <div class="container">
 
-        <h1>🎤 Karaoke Draw</h1>
+        <div class="top">
 
-        <div class="subtitle">
-            Select your name and draw your slot
-        </div>
+            <!-- DRAW BOX -->
 
-        <form method="POST">
+            <div class="card">
 
-            <select name="singer" required>
+                <h1>🎤 Karaoke Draw</h1>
 
-                <option value="">
-                    Select Singer
-                </option>
+                <div class="subtitle">
+                    Select your name and draw your slot
+                </div>
 
-                {% for singer in singers %}
+                <form method="POST">
 
-                    <option value="{{ singer }}">
-                        {{ singer.title() }}
-                    </option>
+                    <select
+                        name="singer"
+                        required
+                    >
 
-                {% endfor %}
+                        <option value="">
+                            Select Singer
+                        </option>
 
-            </select>
+                        {% for singer in singers %}
 
-            <button type="submit">
-                🎲 Draw My Slot
-            </button>
+                            <option value="{{ singer }}">
+                                {{ singer.title() }}
+                            </option>
 
-        </form>
+                        {% endfor %}
 
-        {% if result %}
+                    </select>
 
-            <div class="result">
+                    <button type="submit">
+                        🎲 Draw My Slot
+                    </button>
 
-                <h2>
-                    {{ result.singer.title() }}
-                </h2>
+                </form>
 
-                <div class="slot-box">
+                {% if result %}
 
-                    {% for slot in result.slots %}
+                    <div class="result">
 
-                        <div class="slot">
-                            {{ slot }}
+                        <h2>
+                            {{ result.singer.title() }}
+                        </h2>
+
+                        <div class="slot-container">
+
+                            {% for slot in result.slots %}
+
+                                <div class="slot">
+                                    {{ slot }}
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+            <!-- PUBLIC DRAW LIST -->
+
+            <div class="card">
+
+                <div class="public-title">
+                    📢 Public Draw Results
+                </div>
+
+                <div class="public-list">
+
+                    {% for item in draw_data %}
+
+                        <div class="public-card">
+
+                            <div class="public-name">
+                                {{ item.singer }}
+                            </div>
+
+                            <div class="public-slots">
+
+                                {% for slot in item.slots %}
+
+                                    <div class="mini-slot">
+                                        {{ slot }}
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
                         </div>
 
                     {% endfor %}
 
                 </div>
 
-                <div class="success">
-                    Slot Assigned Successfully ✅
-                </div>
-
             </div>
 
-        {% endif %}
+        </div>
 
     </div>
 
