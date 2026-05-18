@@ -203,31 +203,49 @@ def index():
     # DRAW MODE
     # =====================================
 
-    elif MODE == "draw":
+   elif MODE == "draw":
 
-        # Generate draw only once
-        if not draw_data:
+    result = None
 
-            singers = list(SINGERS.keys())
+    if request.method == "POST":
 
-            random.shuffle(singers)
-
-            for singer in singers:
-
-                slots, error = assign_slots(singer)
-
-                if slots:
-
-                    draw_data.append({
-                        "singer": singer,
-                        "slots": slots
-                    })
-
-        return render_template(
-            "draw.html",
-            draw_data=draw_data
+        singer = (
+            request.form.get("singer")
+            .strip()
+            .lower()
         )
 
+        # Prevent redraw
+        already_drawn = any(
+            d["singer"] == singer
+            for d in draw_data
+        )
+
+        if not already_drawn:
+
+            slots, error = assign_slots(singer)
+
+            if slots:
+
+                result = {
+                    "singer": singer,
+                    "slots": slots
+                }
+
+                draw_data.append(result)
+
+                # TELEGRAM MESSAGE
+                send_telegram(
+                    f"🎤 KARAOKE DRAW\n\n"
+                    f"Singer: {singer.title()}\n"
+                    f"Slots: {', '.join(map(str, slots))}"
+                )
+
+    return render_template(
+        "draw.html",
+        singers=SINGERS.keys(),
+        result=result
+    )
     # =====================================
     # LIVE MODE
     # =====================================
