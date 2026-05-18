@@ -241,11 +241,12 @@ def index():
                         f"Slots: {', '.join(map(str, slots))}"
                     )
 
-        return render_template(
-            "draw.html",
-            singers=SINGERS.keys(),
-            result=result
-        )
+      return render_template(
+    "draw.html",
+    singers=SINGERS.keys(),
+    result=result,
+    draw_data=draw_data
+)
 
     # =====================================
     # LIVE MODE
