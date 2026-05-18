@@ -146,10 +146,17 @@ def assign_slots(singer):
 
     total_songs = SINGERS[singer]
 
+    # Rule:
+    # Slot 1 is reserved
+    # Single-song singers get slot after 11
+
     available = [
         x for x in range(1, TOTAL_SLOTS + 1)
-        if x not in used_slots
+        if x not in used_slots and x != 1
     ]
+
+    if total_songs == 1:
+        available = [x for x in available if x > 11]
 
     random.shuffle(available)
 
@@ -157,7 +164,7 @@ def assign_slots(singer):
 
     for slot in available:
 
-        # Prevent close slots
+        # Prevent nearby slots
         if any(abs(slot - s) <= 1 for s in selected):
             continue
 
@@ -192,50 +199,13 @@ def index():
         return render_template("index.html")
 
     # =====================================
-   # DRAW SYSTEM
-# =========================================
+    # DRAW MODE
+    # =====================================
 
-def assign_slots(singer):
+    elif MODE == "draw":
 
-    global used_slots
+        return render_template("draw.html")
 
-    total_songs = SINGERS[singer]
-
-    # Rule:
-    # 1 is already reserved
-    # Singer with only 1 song should get slot after 11
-
-    available = [
-        x for x in range(1, TOTAL_SLOTS + 1)
-        if x not in used_slots and x != 1
-    ]
-
-    # If singer has only 1 song,
-    # allow only slots after 11
-    if total_songs == 1:
-        available = [x for x in available if x > 11]
-
-    random.shuffle(available)
-
-    selected = []
-
-    for slot in available:
-
-        # Prevent close slots
-        if any(abs(slot - s) <= 1 for s in selected):
-            continue
-
-        selected.append(slot)
-
-        if len(selected) == total_songs:
-            break
-
-    if len(selected) != total_songs:
-        return None, "Not enough slots"
-
-    used_slots.extend(selected)
-
-    return sorted(selected), None
     # =====================================
     # LIVE MODE
     # =====================================
@@ -349,6 +319,7 @@ def telegram_webhook():
             text = (
                 message.get("text", "")
                 .strip()
+                .lower()
             )
 
             chat_id = str(
