@@ -192,49 +192,50 @@ def index():
         return render_template("index.html")
 
     # =====================================
-    # DRAW SYSTEM
-    # =====================================
+   # DRAW SYSTEM
+# =========================================
 
-    elif MODE == "draw":
+def assign_slots(singer):
 
-        result = None
+    global used_slots
 
-        if request.method == "POST":
+    total_songs = SINGERS[singer]
 
-            singer = request.form.get("name")
+    # Rule:
+    # 1 is already reserved
+    # Singer with only 1 song should get slot after 11
 
-            if singer:
+    available = [
+        x for x in range(1, TOTAL_SLOTS + 1)
+        if x not in used_slots and x != 1
+    ]
 
-                slots, error = assign_slots(singer)
+    # If singer has only 1 song,
+    # allow only slots after 11
+    if total_songs == 1:
+        available = [x for x in available if x > 11]
 
-                if error:
+    random.shuffle(available)
 
-                    result = error
+    selected = []
 
-                else:
+    for slot in available:
 
-                    draw_data.append({
-                        "name": singer,
-                        "slots": slots
-                    })
+        # Prevent close slots
+        if any(abs(slot - s) <= 1 for s in selected):
+            continue
 
-                    result = (
-                        f"{singer} → {slots}"
-                    )
+        selected.append(slot)
 
-                    send_telegram(
-                        f"🎤 Karaoke Draw\n\n"
-                        f"Singer: {singer}\n"
-                        f"Slots: {slots}"
-                    )
+        if len(selected) == total_songs:
+            break
 
-        return render_template(
-            "draw.html",
-            singers=SINGERS,
-            data=draw_data,
-            result=result
-        )
+    if len(selected) != total_songs:
+        return None, "Not enough slots"
 
+    used_slots.extend(selected)
+
+    return sorted(selected), None
     # =====================================
     # LIVE MODE
     # =====================================
