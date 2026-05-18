@@ -12,6 +12,7 @@
 
     <title>Karaoke Draw</title>
 
+    <!-- GOOGLE FONT -->
     <link
         href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet"
@@ -37,20 +38,52 @@
                     #1e293b
                 );
 
-            color:white;
-
             min-height:100vh;
+
+            color:white;
 
             padding:30px;
         }
 
         .container{
 
-            max-width:1200px;
+            max-width:1300px;
+
             margin:auto;
         }
 
-        .top{
+        .header{
+
+            text-align:center;
+
+            margin-bottom:40px;
+        }
+
+        .header h1{
+
+            font-size:52px;
+
+            margin-bottom:10px;
+
+            background:
+                linear-gradient(
+                    to right,
+                    #38bdf8,
+                    #a855f7
+                );
+
+            -webkit-background-clip:text;
+            -webkit-text-fill-color:transparent;
+        }
+
+        .header p{
+
+            color:#94a3b8;
+
+            font-size:18px;
+        }
+
+        .layout{
 
             display:grid;
 
@@ -60,9 +93,9 @@
             gap:30px;
         }
 
-        @media(max-width:900px){
+        @media(max-width:1000px){
 
-            .top{
+            .layout{
 
                 grid-template-columns:1fr;
             }
@@ -81,26 +114,19 @@
             padding:35px;
 
             backdrop-filter:blur(14px);
+
+            box-shadow:
+                0 20px 50px rgba(0,0,0,0.35);
         }
 
-        h1{
+        .draw-title{
 
-            font-size:42px;
+            font-size:30px;
 
-            margin-bottom:10px;
-
-            background:
-                linear-gradient(
-                    to right,
-                    #38bdf8,
-                    #a855f7
-                );
-
-            -webkit-background-clip:text;
-            -webkit-text-fill-color:transparent;
+            margin-bottom:12px;
         }
 
-        .subtitle{
+        .draw-subtitle{
 
             color:#94a3b8;
 
@@ -115,6 +141,8 @@
 
             border:none;
 
+            outline:none;
+
             border-radius:18px;
 
             padding:0 20px;
@@ -126,8 +154,6 @@
             color:white;
 
             margin-bottom:20px;
-
-            outline:none;
         }
 
         button{
@@ -146,14 +172,14 @@
 
             cursor:pointer;
 
+            color:white;
+
             background:
                 linear-gradient(
                     135deg,
                     #06b6d4,
                     #9333ea
                 );
-
-            color:white;
 
             transition:0.3s;
         }
@@ -163,30 +189,44 @@
             transform:translateY(-3px);
         }
 
+        button:disabled{
+
+            opacity:0.7;
+
+            cursor:not-allowed;
+        }
+
         .result{
 
-            margin-top:30px;
+            margin-top:35px;
 
             text-align:center;
         }
 
-        .slot-container{
+        .result h2{
+
+            margin-bottom:20px;
+
+            font-size:28px;
+
+            text-transform:capitalize;
+        }
+
+        .slots{
 
             display:flex;
 
             justify-content:center;
 
+            gap:15px;
+
             flex-wrap:wrap;
-
-            gap:14px;
-
-            margin-top:20px;
         }
 
         .slot{
 
-            width:70px;
-            height:70px;
+            width:72px;
+            height:72px;
 
             border-radius:20px;
 
@@ -203,16 +243,28 @@
                     #38bdf8,
                     #8b5cf6
                 );
+
+            box-shadow:
+                0 10px 25px rgba(139,92,246,0.4);
+        }
+
+        .success{
+
+            margin-top:18px;
+
+            color:#4ade80;
+
+            font-weight:600;
         }
 
         .public-title{
 
-            font-size:28px;
+            font-size:30px;
 
             margin-bottom:25px;
         }
 
-        .public-list{
+        .public-grid{
 
             display:grid;
 
@@ -227,14 +279,15 @@
             border:
                 1px solid rgba(255,255,255,0.06);
 
-            border-radius:20px;
+            border-radius:22px;
 
             padding:20px;
         }
 
         .public-name{
 
-            font-size:20px;
+            font-size:21px;
+
             font-weight:600;
 
             margin-bottom:15px;
@@ -245,7 +298,9 @@
         .public-slots{
 
             display:flex;
+
             flex-wrap:wrap;
+
             gap:10px;
         }
 
@@ -260,9 +315,14 @@
             align-items:center;
             justify-content:center;
 
-            font-weight:700;
-
             background:#7c3aed;
+
+            font-weight:700;
+        }
+
+        .empty{
+
+            color:#94a3b8;
         }
 
     </style>
@@ -273,16 +333,30 @@
 
     <div class="container">
 
-        <div class="top">
+        <!-- HEADER -->
 
-            <!-- DRAW BOX -->
+        <div class="header">
+
+            <h1>🎤 Karaoke Draw</h1>
+
+            <p>
+                Official Random Slot Allocation System
+            </p>
+
+        </div>
+
+        <div class="layout">
+
+            <!-- DRAW SECTION -->
 
             <div class="card">
 
-                <h1>🎤 Karaoke Draw</h1>
+                <div class="draw-title">
+                    Draw Your Slot
+                </div>
 
-                <div class="subtitle">
-                    Select your name and draw your slot
+                <div class="draw-subtitle">
+                    Select your name and draw your performance slot
                 </div>
 
                 <form method="POST">
@@ -292,8 +366,12 @@
                         required
                     >
 
-                        <option value="">
-                            Select Singer
+                        <option
+                            value=""
+                            selected
+                            disabled
+                        >
+                            Select Your Name
                         </option>
 
                         {% for singer in singers %}
@@ -306,7 +384,14 @@
 
                     </select>
 
-                    <button type="submit">
+                    <button
+                        type="submit"
+                        onclick="
+                            this.disabled=true;
+                            this.innerHTML='Drawing...';
+                            this.form.submit();
+                        "
+                    >
                         🎲 Draw My Slot
                     </button>
 
@@ -317,10 +402,10 @@
                     <div class="result">
 
                         <h2>
-                            {{ result.singer.title() }}
+                            {{ result.singer }}
                         </h2>
 
-                        <div class="slot-container">
+                        <div class="slots">
 
                             {% for slot in result.slots %}
 
@@ -332,13 +417,17 @@
 
                         </div>
 
+                        <div class="success">
+                            Slot Assigned Successfully ✅
+                        </div>
+
                     </div>
 
                 {% endif %}
 
             </div>
 
-            <!-- PUBLIC DRAW LIST -->
+            <!-- PUBLIC RESULTS -->
 
             <div class="card">
 
@@ -346,33 +435,43 @@
                     📢 Public Draw Results
                 </div>
 
-                <div class="public-list">
+                {% if draw_data %}
 
-                    {% for item in draw_data %}
+                    <div class="public-grid">
 
-                        <div class="public-card">
+                        {% for item in draw_data %}
 
-                            <div class="public-name">
-                                {{ item.singer }}
+                            <div class="public-card">
+
+                                <div class="public-name">
+                                    {{ item.singer }}
+                                </div>
+
+                                <div class="public-slots">
+
+                                    {% for slot in item.slots %}
+
+                                        <div class="mini-slot">
+                                            {{ slot }}
+                                        </div>
+
+                                    {% endfor %}
+
+                                </div>
+
                             </div>
 
-                            <div class="public-slots">
+                        {% endfor %}
 
-                                {% for slot in item.slots %}
+                    </div>
 
-                                    <div class="mini-slot">
-                                        {{ slot }}
-                                    </div>
+                {% else %}
 
-                                {% endfor %}
+                    <div class="empty">
+                        No singers have drawn slots yet.
+                    </div>
 
-                            </div>
-
-                        </div>
-
-                    {% endfor %}
-
-                </div>
+                {% endif %}
 
             </div>
 
