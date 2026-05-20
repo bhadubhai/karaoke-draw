@@ -216,7 +216,7 @@ def get_draw_data():
     return data
 
 # =========================================
-# DRAW SYSTEM
+# SMART DRAW SYSTEM
 # =========================================
 
 def assign_slots(singer):
@@ -227,74 +227,143 @@ def assign_slots(singer):
 
     used_slots = set()
 
-    # USED SLOTS
+    # GET USED SLOTS
     for item in draw_data:
 
         for slot in item["slots"]:
 
             used_slots.add(slot)
 
-    # AVAILABLE SLOTS
-    available = [
+    # =====================================
+    # SLOT 1 RESERVED
+    # =====================================
 
-        x for x in range(
-            1,
-            TOTAL_SLOTS + 1
-        )
-
-        if x not in used_slots
-        and x != 1
-    ]
-
-    # SINGLE SONG RULE
-    if total_songs == 1:
-
-        available = [
-
-            x for x in available
-
-            if x > 11
-        ]
-
-    random.shuffle(available)
+    used_slots.add(1)
 
     selected = []
 
-    for slot in available:
+    # =====================================
+    # HELPER FUNCTION
+    # =====================================
 
-        invalid = False
+    def get_random_slot(start, end):
 
-        for s in selected:
+        available = [
 
-            if abs(slot - s) <= 1:
+            x for x in range(start, end + 1)
 
-                invalid = True
-                break
-
-        if invalid:
-            continue
-
-        selected.append(slot)
-
-        if len(selected) == total_songs:
-            break
-
-    # FALLBACK
-    if len(selected) < total_songs:
-
-        remaining = [
-
-            x for x in available
-
-            if x not in selected
+            if x not in used_slots
+            and x not in selected
         ]
 
-        for slot in remaining:
+        random.shuffle(available)
+
+        for slot in available:
+
+            # PREVENT NEARBY SLOTS
+            close = False
+
+            for s in selected:
+
+                if abs(slot - s) <= 1:
+
+                    close = True
+                    break
+
+            if not close:
+
+                return slot
+
+        return None
+
+    # =====================================
+    # 1 SONG SINGER
+    # DRAW BETWEEN 11-30
+    # =====================================
+
+    if total_songs == 1:
+
+        slot = get_random_slot(11, 30)
+
+        if slot:
 
             selected.append(slot)
 
-            if len(selected) == total_songs:
+    # =====================================
+    # 2 SONG SINGER
+    # ONE FROM 1-20
+    # =====================================
+
+    elif total_songs == 2:
+
+        first = get_random_slot(1, 20)
+
+        if first:
+
+            selected.append(first)
+
+        second = get_random_slot(
+            1,
+            TOTAL_SLOTS
+        )
+
+        if second:
+
+            selected.append(second)
+
+    # =====================================
+    # 3 SONG SINGER
+    # ONE FROM 1-10
+    # =====================================
+
+    elif total_songs == 3:
+
+        first = get_random_slot(1, 10)
+
+        if first:
+
+            selected.append(first)
+
+        while len(selected) < 3:
+
+            slot = get_random_slot(
+                1,
+                TOTAL_SLOTS
+            )
+
+            if not slot:
                 break
+
+            selected.append(slot)
+
+    # =====================================
+    # 4+ SONG SINGER
+    # MUST HAVE ONE IN 1-10
+    # =====================================
+
+    elif total_songs >= 4:
+
+        first = get_random_slot(1, 10)
+
+        if first:
+
+            selected.append(first)
+
+        while len(selected) < total_songs:
+
+            slot = get_random_slot(
+                1,
+                TOTAL_SLOTS
+            )
+
+            if not slot:
+                break
+
+            selected.append(slot)
+
+    # =====================================
+    # VALIDATION
+    # =====================================
 
     if len(selected) != total_songs:
 
@@ -302,7 +371,10 @@ def assign_slots(singer):
 
     selected = sorted(selected)
 
-    # SAVE TO DATABASE
+    # =====================================
+    # SAVE DATABASE
+    # =====================================
+
     conn = sqlite3.connect(DB_PATH)
 
     cur = conn.cursor()
