@@ -51,7 +51,7 @@ MAX_CHILDREN = 32
 SINGERS = {
 
     "chetanbhai pandya": 6,
-    "chandreshbhai fichadiya": 6,
+    "Example 1": 6,
     "anilbhai mavadiya": 3,
     "jiteshbhai jivrajani": 3,
     "kamleshbhai dave": 2,
