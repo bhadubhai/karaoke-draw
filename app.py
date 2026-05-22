@@ -67,7 +67,7 @@ SINGERS = {
     "narendrabhai": 1,
     "yog bhai": 1, 
     "zala bhai ": 1,
-    "jyotiben ": 1
+    "jyotiben ": 1,
     "prakash bhai ": 2
 }
 
