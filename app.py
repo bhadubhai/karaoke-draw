@@ -39,39 +39,48 @@ MODE = "coming"
 # maintenance
 
 # =========================================
-# OPEN MIC SETTINGS
-# =========================================
-
-MAX_CHILDREN = 32
-
-# =========================================
 # KARAOKE SETTINGS
 # =========================================
 
 SINGERS = {
 
-     "chetanbhai ": 4,
-    "Amrish bhai": 3,
-    "anilbhai ": 2,
+    "chetanbhai": 4,
+    "amrish bhai": 3,
+    "anilbhai": 2,
     "etubhai": 3,
-    "Kashmiraben": 1,
-    "Kishor sinh": 2,
-    "Maheshbhai": 2,
-    "Ntinbhai": 2,
+    "kashmiraben": 1,
+    "kishor sinh": 2,
+    "maheshbhai": 2,
+    "ntinbhai": 2,
     "pareshbhai": 3,
     "jagdishbhai": 1,
     "shaistaben": 1,
-    "Falgun bhai ": 1,
-    "Rajendrabhai ": 1, 
-    "sonalben ": 1,
+    "falgun bhai": 1,
+    "rajendrabhai": 1,
+    "sonalben": 1,
     "narendrabhai": 1,
-    "yog bhai": 1, 
-    "zala bhai ": 1,
-    "jyotiben ": 1,
-    "prakash bhai ": 2
+    "yog bhai": 1,
+    "zala bhai": 1,
+    "jyotiben": 1,
+    "prakash bhai": 2
+
 }
 
 TOTAL_SLOTS = 40
+
+# =========================================
+# RESERVED SLOTS
+# =========================================
+
+RESERVED_SLOTS = [
+    1,
+    8,
+    13,
+    15,
+    18,
+    25,
+    40
+]
 
 # =========================================
 # DATABASE INIT
@@ -83,14 +92,6 @@ def init_db():
 
     cur = conn.cursor()
 
-    # OPENMIC TABLE
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS openmic (
-            id INTEGER PRIMARY KEY AUTOINCREMENT
-        )
-    """)
-
-    # DRAW TABLE
     cur.execute("""
         CREATE TABLE IF NOT EXISTS karaoke_draw (
             singer TEXT UNIQUE,
@@ -121,10 +122,10 @@ def send_telegram(message):
             url,
 
             data={
-
                 "chat_id": CHAT_ID,
                 "text": message
             }
+
         )
 
     except Exception as e:
@@ -132,21 +133,8 @@ def send_telegram(message):
         print("Telegram Error:", e)
 
 # =========================================
-# RESET FUNCTIONS
+# RESET DRAW
 # =========================================
-
-def reset_openmic():
-
-    conn = sqlite3.connect(DB_PATH)
-
-    cur = conn.cursor()
-
-    cur.execute(
-        "DELETE FROM openmic"
-    )
-
-    conn.commit()
-    conn.close()
 
 def reset_draw():
 
@@ -160,26 +148,6 @@ def reset_draw():
 
     conn.commit()
     conn.close()
-
-# =========================================
-# OPENMIC COUNT
-# =========================================
-
-def get_total_openmic_registrations():
-
-    conn = sqlite3.connect(DB_PATH)
-
-    cur = conn.cursor()
-
-    cur.execute(
-        "SELECT COUNT(*) FROM openmic"
-    )
-
-    total = cur.fetchone()[0]
-
-    conn.close()
-
-    return total
 
 # =========================================
 # GET DRAW DATA
@@ -207,24 +175,41 @@ def get_draw_data():
 
     for singer, slots in rows:
 
-        data.append({
+        try:
 
-            "singer": singer,
+            slot_list = []
 
-            "slots": [
+            if slots:
 
-                int(x)
+                slot_list = [
 
-                for x in slots.split(",")
+                    int(x.strip())
 
-                if x.strip()
-            ]
-        })
+                    for x in slots.split(",")
+
+                    if x.strip().isdigit()
+                ]
+
+            data.append({
+
+                "singer": singer,
+
+                "slots": slot_list
+            })
+
+        except Exception as e:
+
+            print(
+                "Draw Data Error:",
+                singer,
+                slots,
+                e
+            )
 
     return data
 
 # =========================================
-# ADVANCED SMART DRAW SYSTEM
+# SMART SLOT SYSTEM
 # =========================================
 
 def assign_slots(singer):
@@ -235,31 +220,14 @@ def assign_slots(singer):
 
     used_slots = set()
 
-    # =====================================
-    # RESERVED SLOTS
-    # =====================================
-
-    RESERVED_SLOTS = [
-        1,
-        8,
-        13,
-        15,
-        18,
-        25,
-        40
-    ]
-
-    # =====================================
-    # GET USED SLOTS
-    # =====================================
-
+    # USED SLOTS
     for item in draw_data:
 
         for slot in item["slots"]:
 
             used_slots.add(slot)
 
-    # ADD RESERVED SLOTS
+    # RESERVED SLOTS
     for r in RESERVED_SLOTS:
 
         used_slots.add(r)
@@ -284,9 +252,9 @@ def assign_slots(singer):
 
         for slot in available:
 
-            # PREVENT CLOSE NUMBERS
             invalid = False
 
+            # PREVENT CLOSE SLOTS
             for s in selected:
 
                 if abs(slot - s) <= 1:
@@ -302,7 +270,6 @@ def assign_slots(singer):
 
     # =====================================
     # 1 SONG
-    # (11-17) OR (27-32)
     # =====================================
 
     if total_songs == 1:
@@ -329,19 +296,23 @@ def assign_slots(singer):
 
     # =====================================
     # 2 SONGS
-    # FIRST: 2-12
-    # SECOND: 20-30
     # =====================================
 
     elif total_songs == 2:
 
-        first = get_random_slot(2, 12)
+        first = get_random_slot(
+            2,
+            12
+        )
 
         if first:
 
             selected.append(first)
 
-        second = get_random_slot(20, 30)
+        second = get_random_slot(
+            20,
+            30
+        )
 
         if second:
 
@@ -349,9 +320,6 @@ def assign_slots(singer):
 
     # =====================================
     # 3 SONGS
-    # 2-10
-    # 11-20
-    # 31-35
     # =====================================
 
     elif total_songs == 3:
@@ -376,10 +344,6 @@ def assign_slots(singer):
 
     # =====================================
     # 4 SONGS
-    # 1-10
-    # 10-20
-    # 20-30
-    # 30-39
     # =====================================
 
     elif total_songs == 4:
@@ -404,7 +368,7 @@ def assign_slots(singer):
                 selected.append(slot)
 
     # =====================================
-    # EXTRA SONGS > 4
+    # EXTRA SONGS
     # =====================================
 
     else:
@@ -432,7 +396,7 @@ def assign_slots(singer):
     selected = sorted(selected)
 
     # =====================================
-    # SAVE DATABASE
+    # SAVE TO DATABASE
     # =====================================
 
     conn = sqlite3.connect(DB_PATH)
@@ -457,7 +421,7 @@ def assign_slots(singer):
     conn.close()
 
     return selected, None
-    
+
 # =========================================
 # MAIN WEBSITE
 # =========================================
@@ -467,27 +431,20 @@ def index():
 
     global MODE
 
-    # =====================================
     # COMING SOON
-    # =====================================
-
     if MODE == "coming":
 
         return render_template(
             "index.html"
         )
 
-    # =====================================
     # DRAW MODE
-    # =====================================
-
     elif MODE == "draw":
 
         draw_data = get_draw_data()
 
         result = None
 
-        # HANDLE DRAW
         if (
             request.method == "POST"
             and request.form.get("singer")
@@ -549,113 +506,24 @@ def index():
 
             result=result,
 
-            draw_data=get_draw_data()
+            draw_data=get_draw_data(),
+
+            reserved_slots=RESERVED_SLOTS
         )
 
-    # =====================================
     # LIVE MODE
-    # =====================================
-
     elif MODE == "live":
 
         return render_template(
             "live.html"
         )
 
-    # =====================================
     # MAINTENANCE MODE
-    # =====================================
-
     elif MODE == "maintenance":
 
         return render_template(
             "maintenance.html"
         )
-
-# =========================================
-# OPENMIC PAGE
-# =========================================
-
-@app.route("/openmic", methods=["GET", "POST"])
-def openmic():
-
-    total = get_total_openmic_registrations()
-
-    # CLOSED
-    if total >= MAX_CHILDREN:
-
-        return (
-            "🎤 Open Mic Registrations Closed"
-        )
-
-    if request.method == "POST":
-
-        name = request.form.get("name")
-        age = request.form.get("age")
-        parent = request.form.get("parent")
-        mobile = request.form.get("mobile")
-        performance = request.form.get("performance")
-
-        # AGE CHECK
-        if int(age) > 15:
-
-            return (
-                "Only children up to 15 years allowed"
-            )
-
-        # TELEGRAM
-        send_telegram(
-
-            f"🎉 OPEN MIC REGISTRATION\n\n"
-
-            f"Child: {name}\n"
-
-            f"Age: {age}\n"
-
-            f"Parent: {parent}\n"
-
-            f"Mobile: {mobile}\n"
-
-            f"Performance: {performance}\n"
-
-            f"Payment: ₹100 Pending\n\n"
-
-            f"Venue: Evening Post, Rajkot"
-        )
-
-        # PAYMENT
-        return redirect(
-            "https://rzp.io/rzp/uUJzXQp"
-        )
-
-    remaining = MAX_CHILDREN - total
-
-    return render_template(
-        "openmic.html",
-        remaining=remaining
-    )
-
-# =========================================
-# PAYMENT SUCCESS
-# =========================================
-
-@app.route("/success")
-def success():
-
-    conn = sqlite3.connect(DB_PATH)
-
-    cur = conn.cursor()
-
-    cur.execute(
-        "INSERT INTO openmic DEFAULT VALUES"
-    )
-
-    conn.commit()
-    conn.close()
-
-    return render_template(
-        "success.html"
-    )
 
 # =========================================
 # DEBUG ROUTE
@@ -668,8 +536,21 @@ def debug():
 
         "mode": MODE,
 
-        "draw_data": get_draw_data()
+        "draw_data": get_draw_data(),
+
+        "reserved_slots": RESERVED_SLOTS
     }
+
+# =========================================
+# FIX DATABASE
+# =========================================
+
+@app.route("/fixdb")
+def fixdb():
+
+    reset_draw()
+
+    return "Database Reset Done"
 
 # =========================================
 # TELEGRAM WEBHOOK
@@ -746,16 +627,6 @@ def telegram_webhook():
 
                 send_telegram(
                     "🔁 Karaoke Draw Reset"
-                )
-
-            # RESET OPENMIC
-            elif text == "/resetopenmic":
-
-                reset_openmic()
-
-                send_telegram(
-                    "🎤 Open Mic Reset Successful\n\n"
-                    "32 Slots Reopened ✅"
                 )
 
     except Exception as e:
