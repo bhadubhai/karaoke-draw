@@ -50,20 +50,28 @@ MAX_CHILDREN = 32
 
 SINGERS = {
 
-    "chetanbhai pandya": 6,
-    "Example 1": 6,
-    "anilbhai mavadiya": 3,
-    "jiteshbhai jivrajani": 3,
-    "kamleshbhai dave": 2,
-    "pareshbhai khakhkhar": 2,
-    "narendrabhai khakhkhar": 1,
-    "jaysukhbhai parekh": 1,
-    "rockstar": 3,
-    "jagdishbhai kariya": 2,
-    "ashokbhai dhamecha": 1,
+     "chetanbhai ": 4,
+    "Amrish bhai": 3,
+    "anilbhai ": 2,
+    "etubhai": 3,
+    "Kashmiraben": 1,
+    "Kishor sinh": 2,
+    "Maheshbhai": 2,
+    "Ntinbhai": 2,
+    "pareshbhai": 3,
+    "jagdishbhai": 1,
+    "shaistaben": 1,
+    "Falgun bhai ": 1,
+    "Rajendrabhai ": 1, 
+    "sonalben ": 1,
+    "narendrabhai": 1,
+    "yog bhai": 1, 
+    "zala bhai ": 1,
+    "jyotiben ": 1
+    "prakash bhai ": 2
 }
 
-TOTAL_SLOTS = 31
+TOTAL_SLOTS = 40
 
 # =========================================
 # DATABASE INIT
@@ -216,7 +224,7 @@ def get_draw_data():
     return data
 
 # =========================================
-# SMART DRAW SYSTEM
+# ADVANCED SMART DRAW SYSTEM
 # =========================================
 
 def assign_slots(singer):
@@ -227,23 +235,39 @@ def assign_slots(singer):
 
     used_slots = set()
 
+    # =====================================
+    # RESERVED SLOTS
+    # =====================================
+
+    RESERVED_SLOTS = [
+        1,
+        8,
+        13,
+        15,
+        18,
+        25,
+        40
+    ]
+
+    # =====================================
     # GET USED SLOTS
+    # =====================================
+
     for item in draw_data:
 
         for slot in item["slots"]:
 
             used_slots.add(slot)
 
-    # =====================================
-    # SLOT 1 RESERVED
-    # =====================================
+    # ADD RESERVED SLOTS
+    for r in RESERVED_SLOTS:
 
-    used_slots.add(1)
+        used_slots.add(r)
 
     selected = []
 
     # =====================================
-    # HELPER FUNCTION
+    # RANDOM SLOT FUNCTION
     # =====================================
 
     def get_random_slot(start, end):
@@ -260,94 +284,130 @@ def assign_slots(singer):
 
         for slot in available:
 
-            # PREVENT NEARBY SLOTS
-            close = False
+            # PREVENT CLOSE NUMBERS
+            invalid = False
 
             for s in selected:
 
                 if abs(slot - s) <= 1:
 
-                    close = True
+                    invalid = True
                     break
 
-            if not close:
+            if not invalid:
 
                 return slot
 
         return None
 
     # =====================================
-    # 1 SONG SINGER
-    # DRAW BETWEEN 11-30
+    # 1 SONG
+    # (11-17) OR (27-32)
     # =====================================
 
     if total_songs == 1:
 
-        slot = get_random_slot(11, 30)
+        ranges = [
 
-        if slot:
+            (11, 17),
+            (27, 32)
+        ]
 
-            selected.append(slot)
+        random.shuffle(ranges)
+
+        for start, end in ranges:
+
+            slot = get_random_slot(
+                start,
+                end
+            )
+
+            if slot:
+
+                selected.append(slot)
+                break
 
     # =====================================
-    # 2 SONG SINGER
-    # ONE FROM 1-20
+    # 2 SONGS
+    # FIRST: 2-12
+    # SECOND: 20-30
     # =====================================
 
     elif total_songs == 2:
 
-        first = get_random_slot(1, 20)
+        first = get_random_slot(2, 12)
 
         if first:
 
             selected.append(first)
 
-        second = get_random_slot(
-            1,
-            TOTAL_SLOTS
-        )
+        second = get_random_slot(20, 30)
 
         if second:
 
             selected.append(second)
 
     # =====================================
-    # 3 SONG SINGER
-    # ONE FROM 1-10
+    # 3 SONGS
+    # 2-10
+    # 11-20
+    # 31-35
     # =====================================
 
     elif total_songs == 3:
 
-        first = get_random_slot(1, 10)
+        ranges = [
 
-        if first:
+            (2, 10),
+            (11, 20),
+            (31, 35)
+        ]
 
-            selected.append(first)
-
-        while len(selected) < 3:
+        for start, end in ranges:
 
             slot = get_random_slot(
-                1,
-                TOTAL_SLOTS
+                start,
+                end
             )
 
-            if not slot:
-                break
+            if slot:
 
-            selected.append(slot)
+                selected.append(slot)
 
     # =====================================
-    # 4+ SONG SINGER
-    # MUST HAVE ONE IN 1-10
+    # 4 SONGS
+    # 1-10
+    # 10-20
+    # 20-30
+    # 30-39
     # =====================================
 
-    elif total_songs >= 4:
+    elif total_songs == 4:
 
-        first = get_random_slot(1, 10)
+        ranges = [
 
-        if first:
+            (1, 10),
+            (10, 20),
+            (20, 30),
+            (30, 39)
+        ]
 
-            selected.append(first)
+        for start, end in ranges:
+
+            slot = get_random_slot(
+                start,
+                end
+            )
+
+            if slot:
+
+                selected.append(slot)
+
+    # =====================================
+    # EXTRA SONGS > 4
+    # =====================================
+
+    else:
 
         while len(selected) < total_songs:
 
@@ -397,7 +457,7 @@ def assign_slots(singer):
     conn.close()
 
     return selected, None
-
+    
 # =========================================
 # MAIN WEBSITE
 # =========================================
